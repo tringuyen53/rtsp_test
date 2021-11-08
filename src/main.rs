@@ -58,24 +58,34 @@ use ffmpeg::format::{input, Pixel};
 use ffmpeg::media::Type;
 use ffmpeg::software::scaling::{context::Context, flag::Flags};
 use ffmpeg::util::frame::video::Video;
-use smol::prelude::*;
-use std::env;
 use std::fs::File;
 use std::io::prelude::*;
+use std::thread;
+use tokio::runtime::Handle;
 
-fn main() -> Result<(), ffmpeg::Error> {
-    smol::spawn(async {
-        get_frame("rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major".to_owned())
-    })
-    .detach();
-    smol::spawn(async { get_frame("rtsp://10.50.29.36/1/h264major".to_owned()) }).detach();
-    println!("After 2 spawns");
-    std::thread::sleep(std::time::Duration::from_secs(30));
-    Ok(())
+#[tokio::main]
+async fn main() {
+    let handle = Handle::current();
+
+    let urls = [
+        "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
+        "rtsp://10.50.29.36/1/h264major",
+    ];
+
+    let thread = thread::spawn(move || {
+        for url in urls {
+            handle.spawn(async move { get_frame(url).await });
+        }
+    });
+
+    thread.join().expect("cannot spawn thread");
+
+    loop {}
 }
 
-async fn get_frame(cam_url: String) -> Result<(), ffmpeg::Error> {
+async fn get_frame(cam_url: &str) -> Result<(), ffmpeg::Error> {
     ffmpeg::init().unwrap();
+
     let path = cam_url.clone();
     if let Ok(mut ictx) = input(&path) {
         let input = ictx

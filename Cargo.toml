@@ -10,4 +10,4 @@ edition = "2018"
 image = "0.23.14"
 ffmpeg-next = "4.4.0"
 # opencv = {version = "*", features = ["clang-runtime"]}
-smol = "1.2.5"
+tokio = { version = "*", features = ["full"]}
