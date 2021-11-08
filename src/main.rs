@@ -64,15 +64,16 @@ use std::io::prelude::*;
 use smol::prelude::*;
 
 fn main() -> Result<(), ffmpeg::Error> {
-    
+    // let ex = smol::Executor::new();
     smol::spawn(get_frame("rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major".to_owned())).detach();
-    // smol::spawn(get_frame("rtsp://10.50.29.36/1/h264major".to_owned())).detach();
+    smol::spawn(get_frame("rtsp://10.50.29.36/1/h264major".to_owned())).detach();
     println!("After 2 spawns");
     std::thread::sleep(std::time::Duration::from_secs(30));
     Ok(())
 }
 
 async fn get_frame(cam_url: String) -> Result<(), ffmpeg::Error>  {
+    println!("{:?}", cam_url);
     ffmpeg::init().unwrap();
     let path = cam_url.clone();
     if let Ok(mut ictx) = input(&path) {
@@ -102,7 +103,7 @@ async fn get_frame(cam_url: String) -> Result<(), ffmpeg::Error>  {
                 while decoder.receive_frame(&mut decoded).is_ok() {
                     let mut rgb_frame = Video::empty();
                     scaler.run(&decoded, &mut rgb_frame)?;
-                    save_file(&rgb_frame, frame_index).unwrap();
+                    // save_file(&rgb_frame, frame_index).unwrap();
                     frame_index += 1;
                 }
                 Ok(())
