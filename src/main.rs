@@ -1,8 +1,31 @@
 use opencv::{Result, imgcodecs, prelude::*, videoio};
-fn main() -> Result<()> {
-    println!("Hello, world!");
-    let mut cam = videoio::VideoCapture::from_file("rtsp://10.50.31.241/axis-media/media.amp",
-     videoio::CAP_GSTREAMER).unwrap(); // 0 is the default camera
+use tokio::runtime::Handle;
+// use opencv::prelude::*;
+#[tokio::main]
+async fn main() {
+    
+	let handle = Handle::current();
+
+    let urls = [
+        "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
+        "rtsp://10.50.29.36/1/h264major",
+        "rtsp://vietnam:L3xRay123!@10.50.29.64/axis-media/media.amp",
+        "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
+        "rtsp://10.50.30.100/1/h264major",
+
+    ];
+
+    for url in urls {
+        handle.spawn(async move { get_frame(url).await });
+    }
+
+    loop {}
+}
+
+async fn get_frame(cam_url: &str) -> Result<(), opencv::Error> {
+    println!("{:?}", cam_url);
+    let mut cam = videoio::VideoCapture::from_file(cam_url,
+     videoio::CAP_FFMPEG).unwrap(); // 0 is the default camera
     let opened = videoio::VideoCapture::is_opened(&cam).unwrap();
 	if !opened {
 		panic!("Unable to open default camera!");
@@ -30,7 +53,7 @@ fn main() -> Result<()> {
             //         return Ok(())
             //     },
             // };
-            // img.save(format!("img_bytes-{}.jpg", img_count)).unwrap();
+            // img.save(format!("{:?}-{}.jpg", img.clone().as_bytes().len(), img_count)).unwrap();
             // let img16 = img.into_rgb8();
             // let data = img16.into_raw() as Vec<u8>;
             // println!("Image length: {}", data.len());
@@ -50,7 +73,7 @@ fn main() -> Result<()> {
 		// 	break;
 		// }
 	}
-	Ok(())
+    Ok(())
 }
 // extern crate ffmpeg_next as ffmpeg;
 
