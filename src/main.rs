@@ -70,6 +70,9 @@ async fn main() {
     let urls = [
         "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
         "rtsp://10.50.29.36/1/h264major",
+        "rtsp://vietnam:L3xRay123!@10.50.29.64/axis-media/media.amp",
+        "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
+        "rtsp://10.50.30.100/1/h264major"
     ];
 
     for url in urls {
@@ -82,7 +85,7 @@ async fn main() {
 async fn get_frame(cam_url: &str) -> Result<(), ffmpeg::Error> {
     ffmpeg::init().unwrap();
 
-    println!("hey there");
+    println!("{:?}", cam_url);
 
     let path = cam_url.clone();
     if let Ok(mut ictx) = input(&path) {
