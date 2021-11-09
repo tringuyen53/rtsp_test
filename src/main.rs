@@ -72,19 +72,17 @@ async fn main() {
         "rtsp://10.50.29.36/1/h264major",
     ];
 
-    let thread = thread::spawn(move || {
-        for url in urls {
-            handle.spawn(async move { get_frame(url).await });
-        }
-    });
-
-    thread.join().expect("cannot spawn thread");
+    for url in urls {
+        handle.spawn(async move { get_frame(url).await });
+    }
 
     loop {}
 }
 
 async fn get_frame(cam_url: &str) -> Result<(), ffmpeg::Error> {
     ffmpeg::init().unwrap();
+
+    println!("hey there");
 
     let path = cam_url.clone();
     if let Ok(mut ictx) = input(&path) {
