@@ -8,6 +8,14 @@ edition = "2018"
 
 [dependencies]
 image = "0.23.14"
-ffmpeg-next = "4.4.0"
+# ffmpeg-next = "4.4.0"
 # opencv = {version = "*", features = ["clang-runtime"]}
 tokio = { version = "*", features = ["full"]}
+# ffav = {git = "https://github.com/vaxpl/ffav-rs.git", branch = "master"}
+# ffav = "*"
+
+[dependencies.ffav]
+git = "https://github.com/vaxpl/ffav-rs.git"
+branch = "master"
+default-features = false
+features = ["ffmpeg42", "codec", "format"]
