@@ -52,6 +52,8 @@
 // 	}
 // 	Ok(())
 // }
+
+//FFMPEG-RUST
 // extern crate ffmpeg_next as ffmpeg;
 
 // use ffmpeg::format::{input, Pixel};
@@ -152,87 +154,346 @@
 //     Ok(())
 // }
 
+//FFAV
 // use clap::{App, Arg};
-use ffav::easy::{AVError, AVFrameOwned, SimpleDecoder, SimpleReader};
-use ffav::ffi::{AVCodecID, AVPacket};
-use std::convert::TryInto;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
-use std::time::Instant;
+// use ffav::easy::{AVError, AVFrameOwned, SimpleDecoder, SimpleReader};
+// use ffav::ffi::{AVCodecID, AVPacket};
+// use std::convert::TryInto;
+// use std::sync::{
+//     atomic::{AtomicBool, Ordering},
+//     Arc,
+// };
+// use std::time::Instant;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let matches = App::new("Simple Decoder")
-    //     .version("1.0")
-    //     .author("Varphone Wong <varphone@qq.com>")
-    //     .about("Example for SimpeDecoder")
-    //     .arg(
-    //         Arg::with_name("FILE")
-    //             .help("Sets the input file to use for decoding")
-    //             .required(true),
-    //     )
-    //     .get_matches();
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     // let matches = App::new("Simple Decoder")
+//     //     .version("1.0")
+//     //     .author("Varphone Wong <varphone@qq.com>")
+//     //     .about("Example for SimpeDecoder")
+//     //     .arg(
+//     //         Arg::with_name("FILE")
+//     //             .help("Sets the input file to use for decoding")
+//     //             .required(true),
+//     //     )
+//     //     .get_matches();
 
-    // let input_file = matches
-    //     .value_of("FILE")
-    //     .ok_or("The input file must be specified")?;
-    let input_file = "rtsp://10.50.30.100/1/h264major";
+//     // let input_file = matches
+//     //     .value_of("FILE")
+//     //     .ok_or("The input file must be specified")?;
+//     let input_file = "rtsp://10.50.30.100/1/h264major";
 
-    let early_exit = Arc::new(AtomicBool::new(false));
-    let early_exit_cloned = Arc::clone(&early_exit);
-    let early_exit_thread = std::thread::spawn(move || {
-        let mut buffer = String::new();
-        std::io::stdin().read_line(&mut buffer).unwrap();
-        early_exit_cloned.store(true, Ordering::SeqCst);
-    });
+//     let early_exit = Arc::new(AtomicBool::new(false));
+//     let early_exit_cloned = Arc::clone(&early_exit);
+//     let early_exit_thread = std::thread::spawn(move || {
+//         let mut buffer = String::new();
+//         std::io::stdin().read_line(&mut buffer).unwrap();
+//         early_exit_cloned.store(true, Ordering::SeqCst);
+//     });
 
-    ffav::util::error::register_all();
+//     ffav::util::error::register_all();
 
-    let mut decoder = SimpleDecoder::new(AVCodecID::AV_CODEC_ID_H264)?;
-    let mut reader = SimpleReader::open(input_file, None, None)?;
-    let stream_codecs: Vec<AVCodecID> = reader
-        .streams()
-        .iter()
-        .map(|x| match x.codecpar() {
-            Some(v) => v.codec_id,
-            None => AVCodecID::AV_CODEC_ID_NONE,
-        })
-        .collect();
+//     let mut decoder = SimpleDecoder::new(AVCodecID::AV_CODEC_ID_H264)?;
+//     let mut reader = SimpleReader::open(input_file, None, None)?;
+//     let stream_codecs: Vec<AVCodecID> = reader
+//         .streams()
+//         .iter()
+//         .map(|x| match x.codecpar() {
+//             Some(v) => v.codec_id,
+//             None => AVCodecID::AV_CODEC_ID_NONE,
+//         })
+//         .collect();
 
-    println!("streams()={:#?}", reader.streams());
-    for s in reader.streams() {
-        println!("codecpar={:#?}", s.codecpar().unwrap());
-    }
+//     println!("streams()={:#?}", reader.streams());
+//     for s in reader.streams() {
+//         println!("codecpar={:#?}", s.codecpar().unwrap());
+//     }
 
-    let mut frame = AVFrameOwned::new()?;
+//     let mut frame = AVFrameOwned::new()?;
 
-    for (mut packet, _info) in reader.frames() {
-        if early_exit.load(Ordering::SeqCst) {
-            break;
-        }
+//     for (mut packet, _info) in reader.frames() {
+//         if early_exit.load(Ordering::SeqCst) {
+//             break;
+//         }
 
-        let bytes =
-            unsafe { std::slice::from_raw_parts(packet.data, packet.size.try_into().unwrap()) };
-        let n = bytes.len().min(16);
-        if stream_codecs[packet.stream_index as usize] == AVCodecID::AV_CODEC_ID_H264 {
-            match decoder.receive_frame(&mut frame) {
-                Ok(_) => {
-                    println!("Frame {:#?}", frame)
-            
-            },
-                Err(e) => match e {
-                    AVError::Again => { // Try next
-                    }
-                    e => println!("Error: {:?}", e),
-                },
+//         let bytes =
+//             unsafe { std::slice::from_raw_parts(packet.data, packet.size.try_into().unwrap()) };
+//         let n = bytes.len().min(16);
+//         if stream_codecs[packet.stream_index as usize] == AVCodecID::AV_CODEC_ID_H264 {
+//             match decoder.receive_frame(&mut frame) {
+//                 Ok(_) => {
+//                     // println!("Frame {:#?}", frame)
+
+//             },
+//                 Err(e) => match e {
+//                     AVError::Again => { // Try next
+//                     }
+//                     e => println!("Error: {:?}", e),
+//                 },
+//             }
+//             let r = decoder.send_packet(&mut packet);
+//             // println!("r2={:?}", r);
+//         }
+//     }
+
+//     early_exit_thread.join().unwrap();
+
+//     Ok(())
+// }
+
+//GSTREAMER
+
+// This example demonstrates how to get a raw video frame at a given position
+// and then rescale and store it with the image crate:
+
+// {uridecodebin} - {videoconvert} - {appsink}
+
+// The appsink enforces RGBx so that the image crate can use it. The sample layout is passed
+// with the correct stride from GStreamer to the image crate as GStreamer does not necessarily
+// produce tightly packed pixels, and in case of RGBx never.
+extern crate gstreamer as gst;
+extern crate gstreamer_app as gst_app;
+extern crate gstreamer_video as gst_video;
+use gst::element_error;
+use gst::glib;
+use gst::prelude::*;
+
+use anyhow::Error;
+use derive_more::{Display, Error};
+
+// #[path = "../examples-common.rs"]
+// mod examples_common;
+
+#[derive(Debug, Display, Error)]
+#[display(fmt = "Missing element {}", _0)]
+struct MissingElement(#[error(not(source))] &'static str);
+
+#[derive(Debug, Display, Error)]
+#[display(fmt = "Received error from {}: {} (debug: {:?})", src, error, debug)]
+struct ErrorMessage {
+    src: String,
+    error: String,
+    debug: Option<String>,
+    source: glib::Error,
+}
+
+fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pipeline, Error> {
+    gst::init()?;
+
+    // Create our pipeline from a pipeline description string.
+    let pipeline = gst::parse_launch(&format!(
+        "rtspsrc location={} latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! videoconvert ! appsink name=sink",
+        uri
+    ))?
+    .downcast::<gst::Pipeline>()
+    .expect("Expected a gst::Pipeline");
+
+    println!("pipeline: {:?}", pipeline);
+    // Get access to the appsink element.
+    let appsink = pipeline
+        .by_name("sink")
+        .expect("Sink element not found")
+        .downcast::<gst_app::AppSink>()
+        .expect("Sink element is expected to be an appsink!");
+
+    println!("appsink: {:?}", appsink);
+
+    // Don't synchronize on the clock, we only want a snapshot asap.
+    // appsink.set_property("sync", false);
+
+    // Tell the appsink what format we want.
+    // This can be set after linking the two objects, because format negotiation between
+    // both elements will happen during pre-rolling of the pipeline.
+    appsink.set_caps(Some(
+        &gst::Caps::builder("video/x-raw")
+            .field("format", gst_video::VideoFormat::Rgbx.to_str())
+            .build(),
+    ));
+    println!("Before callback");
+    // let mut got_snapshot = false;
+
+    // Getting data out of the appsink is done by setting callbacks on it.
+    // The appsink will then call those handlers, as soon as data is available.
+    appsink.set_callbacks(
+        gst_app::AppSinkCallbacks::builder()
+            // Add a handler to the "new-sample" signal.
+            .new_sample(move |appsink| {
+                // Pull the sample in question out of the appsink's buffer.
+                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+                println!("Sample: {:?}", sample);
+                let buffer = sample.buffer().ok_or_else(|| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to get buffer from appsink")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+                println!("Buffer {:?}", buffer);
+
+                let map = buffer.map_readable().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to map buffer readable")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+                println!("Map {:?}", map);
+
+                // Make sure that we only get a single buffer
+                // if got_snapshot {
+                //     return Err(gst::FlowError::Eos);
+                // }
+                // got_snapshot = true;
+
+                // let caps = sample.caps().expect("Sample without caps");
+                // let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                // println!("info: {:?}", info);
+                // // At this point, buffer is only a reference to an existing memory region somewhere.
+                // // When we want to access its content, we have to map it while requesting the required
+                // // mode of access (read, read/write).
+                // // This type of abstraction is necessary, because the buffer in question might not be
+                // // on the machine's main memory itself, but rather in the GPU's memory.
+                // // So mapping the buffer makes the underlying memory region accessible to us.
+                // // See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
+                // let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
+                //     .map_err(|_| {
+                //         element_error!(
+                //             appsink,
+                //             gst::ResourceError::Failed,
+                //             ("Failed to map buffer readable")
+                //         );
+
+                //         gst::FlowError::Error
+                //     })?;
+
+                // We only want to have a single buffer and then have the pipeline terminate
+                // println!("Have video frame: {:?}", frame);
+
+                // Calculate a target width/height that keeps the display aspect ratio while having
+                // a height of 240 pixels
+                // let display_aspect_ratio = (frame.width() as f64 * *info.par().numer() as f64)
+                //     / (frame.height() as f64 * *info.par().denom() as f64);
+                // let target_height = 240;
+                // let target_width = target_height as f64 * display_aspect_ratio;
+
+                // // Create a FlatSamples around the borrowed video frame data from GStreamer with
+                // // the correct stride as provided by GStreamer.
+                // let img = image::FlatSamples::<&[u8]> {
+                //     samples: frame.plane_data(0).unwrap(),
+                //     layout: image::flat::SampleLayout {
+                //         channels: 3,       // RGB
+                //         channel_stride: 1, // 1 byte from component to component
+                //         width: frame.width(),
+                //         width_stride: 4, // 4 byte from pixel to pixel
+                //         height: frame.height(),
+                //         height_stride: frame.plane_stride()[0] as usize, // stride from line to line
+                //     },
+                //     color_hint: Some(image::ColorType::Rgb8),
+                // };
+
+                // // Scale image to our target dimensions
+                // let scaled_img = image::imageops::thumbnail(
+                //     &img.as_view::<image::Rgb<u8>>()
+                //         .expect("couldn't create image view"),
+                //     target_width as u32,
+                //     target_height as u32,
+                // );
+
+                // // Save it at the specific location. This automatically detects the file type
+                // // based on the filename.
+                // scaled_img.save(&out_path).map_err(|err| {
+                //     element_error!(
+                //         appsink,
+                //         gst::ResourceError::Write,
+                //         (
+                //             "Failed to write thumbnail file {}: {}",
+                //             out_path.display(),
+                //             err
+                //         )
+                //     );
+
+                //     gst::FlowError::Error
+                // })?;
+
+                // println!("Wrote thumbnail to {}", out_path.display());
+
+                Ok(gst::FlowSuccess::Ok)
+            })
+            .build(),
+    );
+
+    Ok(pipeline)
+}
+
+fn main_loop(pipeline: gst::Pipeline, position: u64) -> Result<(), Error> {
+    println!("Start main loop");
+    pipeline.set_state(gst::State::Playing)?;
+
+    let bus = pipeline
+        .bus()
+        .expect("Pipeline without bus. Shouldn't happen!");
+
+    println!("Bus: {:?}", bus);
+
+    for msg in bus.iter_timed(gst::ClockTime::NONE) {
+        // println!("In loop msg: {:?}", msg);
+        use gst::MessageView;
+
+        match msg.view() {
+            MessageView::Eos(..) => break,
+            MessageView::Error(err) => {
+                pipeline.set_state(gst::State::Null)?;
+                return Err(ErrorMessage {
+                    src: msg
+                        .src()
+                        .map(|s| String::from(s.path_string()))
+                        .unwrap_or_else(|| String::from("None")),
+                    error: err.error().to_string(),
+                    debug: err.debug(),
+                    source: err.error(),
+                }
+                .into());
             }
-            let r = decoder.send_packet(&mut packet);
-            println!("r2={:?}", r);
+            _ => (),
         }
     }
 
-    early_exit_thread.join().unwrap();
+    pipeline.set_state(gst::State::Null)?;
 
     Ok(())
+}
+
+fn main() {
+    // use std::env;
+
+    // let mut args = env::args();
+
+    // Parse commandline arguments: input URI, position in seconds, output path
+    // let _arg0 = args.next().unwrap();
+    // let uri = args
+    //     .next()
+    //     .expect("No input URI provided on the commandline");
+    // let position = args
+    //     .next()
+    //     .expect("No position in second on the commandline");
+    // let position = position
+    //     .parse::<u64>()
+    //     .expect("Failed to parse position as integer");
+    // let out_path = args
+    //     .next()
+    //     .expect("No output path provided on the commandline");
+    let uri = "rtsp://10.50.30.100/1/h264major".to_owned();
+    let position = 10;
+    let out_path = "../";
+    let out_path = std::path::PathBuf::from(out_path);
+
+    match create_pipeline(uri, out_path).and_then(|pipeline| main_loop(pipeline, position)) {
+        Ok(r) => r,
+        Err(e) => eprintln!("Error! {}", e),
+    }
 }
