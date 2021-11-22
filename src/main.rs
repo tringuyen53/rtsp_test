@@ -283,11 +283,11 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
 
     // Create our pipeline from a pipeline description string.
     // let pipeline = gst::parse_launch(&format!(
-    //     "rtspsrc location={} latency=0 ! rtph264depay ! h264parse ! vaapih264dec ! videoconvert ! appsink name=sink",
+    //     "rtspsrc location={} latency=0 ! rtph264depay ! rtpjitterbuffer ! h264parse ! avdec_h264 ! videoconvert ! videoscale ! jpegenc ! appsink name=sink ! multifilesink location='./frame%08d.jpg'",
     //     uri
     // ))?
     let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videoconvert ! videoscale ! appsink name=sink",
+        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -310,7 +310,7 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
     // This can be set after linking the two objects, because format negotiation between
     // both elements will happen during pre-rolling of the pipeline.
     appsink.set_caps(Some(
-        &gst::Caps::builder("video/x-raw")
+        &gst::Caps::builder("video/x-h264")
             // .field("format", gst_video::VideoFormat::Rgbx.to_str())
             .build(),
     ));
@@ -395,66 +395,66 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
 
                 // Calculate a target width/height that keeps the display aspect ratio while having
                 // a height of 240 pixels
-                let display_aspect_ratio = (frame.width() as f64 * *info.par().numer() as f64)
-                    / (frame.height() as f64 * *info.par().denom() as f64);
-                let target_height = 240;
-                let target_width = target_height as f64 * display_aspect_ratio;
+                // let display_aspect_ratio = (frame.width() as f64 * *info.par().numer() as f64)
+                //     / (frame.height() as f64 * *info.par().denom() as f64);
+                // let target_height = 240;
+                // let target_width = target_height as f64 * display_aspect_ratio;
 
                 // Create a FlatSamples around the borrowed video frame data from GStreamer with
                 // the correct stride as provided by GStreamer.
-                let img = image::FlatSamples::<&[u8]> {
-                    samples: frame.plane_data(0).unwrap(),
-                    layout: image::flat::SampleLayout {
-                        channels: 3,       // RGB
-                        channel_stride: 1, // 1 byte from component to component
-                        width: frame.width(),
-                        width_stride: 4, // 4 byte from pixel to pixel
-                        height: frame.height(),
-                        height_stride: frame.plane_stride()[0] as usize, // stride from line to line
-                    },
-                    color_hint: Some(image::ColorType::Rgb8),
-                };
+                // let img = image::FlatSamples::<&[u8]> {
+                //     samples: frame.plane_data(0).unwrap(),
+                //     layout: image::flat::SampleLayout {
+                //         channels: 3,       // RGB
+                //         channel_stride: 1, // 1 byte from component to component
+                //         width: frame.width(),
+                //         width_stride: 4, // 4 byte from pixel to pixel
+                //         height: frame.height(),
+                //         height_stride: frame.plane_stride()[0] as usize, // stride from line to line
+                //     },
+                //     color_hint: Some(image::ColorType::Rgb8),
+                // };
 
                 //SAVING IMAGE
-            //     let img =
-            //     image::load_from_memory(&frame.plane_data(0).unwrap()).unwrap();
-            // // let img = match img_result {
-            // //     Ok(image) => image,
-            // //     Err(_) => ,
-            // // };
-            //     img.save(format!("img-{}", count)).unwrap();
-            //     let img16 = img.into_rgb8();
-            //     let data = img16.into_raw() as Vec<u8>;
-            //     println!("Image length: {}", data.len());
-            //     count += 1;
+                let img = 
+                image::load(&frame.plane_data(0).unwrap()).unwrap();
+            // let img = match img_result {
+            //     Ok(image) => image,
+            //     Err(_) => ,
+            // };
+                img.save(format!("img-{}", count)).unwrap();
+                let img16 = img.into_rgb8();
+                let data = img16.into_raw() as Vec<u8>;
+                println!("Image length: {}", data.len());
+                count += 1;
 
                 // // let img_buffer = img.as_slice();                
 
                 // // // Scale image to our target dimensions
-                let scaled_img = image::imageops::thumbnail(
-                    &img.as_view::<image::Rgb<u8>>()
-                        .expect("couldn't create image view"),
-                        target_width as u32,
-                    target_height as u32,
-                );
+                // let scaled_img = image::imageops::thumbnail(
+                //     &img.as_view::<image::Rgb<u8>>()
+                //         .expect("couldn't create image view"),
+                //         target_width as u32,
+                //     target_height as u32,
+                // );
 
-                // // Save it at the specific location. This automatically detects the file type
-                // // based on the filename.
-                scaled_img.save(&out_path).map_err(|err| {
-                    element_error!(
-                        appsink,
-                        gst::ResourceError::Write,
-                        (
-                            "Failed to write thumbnail file {}: {}",
-                            out_path.display(),
-                            err
-                        )
-                    );
+                // // // Save it at the specific location. This automatically detects the file type
+                // // // based on the filename.
+                // scaled_img.save(&out_path).map_err(|err| {
+                //     element_error!(
+                //         appsink,
+                //         gst::ResourceError::Write,
+                //         (
+                //             "Failed to write thumbnail file {}: {}",
+                //             out_path.display(),
+                //             err
+                //         )
+                //     );
 
-                    gst::FlowError::Error
-                })?;
+                //     gst::FlowError::Error
+                // })?;
 
-                println!("Wrote thumbnail to {}", out_path.display());
+                // println!("Wrote thumbnail to {}", out_path.display());
 
                 Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
