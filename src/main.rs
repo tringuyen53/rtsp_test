@@ -282,14 +282,14 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
-    // let pipeline = gst::parse_launch(&format!(
-    //     "rtspsrc location={} latency=0 ! rtph264depay ! rtpjitterbuffer ! h264parse ! avdec_h264 ! videoconvert ! videoscale ! jpegenc ! appsink name=sink ! multifilesink location='./frame%08d.jpg'",
-    //     uri
-    // ))?
     let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
+        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! videoconvert ! videoscale ! jpegenc !  appsink name=sink ",
         uri
     ))?
+    // let pipeline = gst::parse_launch(&format!(
+    //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
+    //     uri
+    // ))?
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
 
@@ -310,8 +310,8 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
     // This can be set after linking the two objects, because format negotiation between
     // both elements will happen during pre-rolling of the pipeline.
     appsink.set_caps(Some(
-        &gst::Caps::builder("video/x-h264")
-            // .field("format", gst_video::VideoFormat::Rgbx.to_str())
+        &gst::Caps::builder("video/x-raw")
+            .field("framerate", "5/1".to_string())
             .build(),
     ));
     println!("Before callback");
@@ -417,7 +417,7 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
 
                 //SAVING IMAGE
                 let img = 
-                image::load(&frame.plane_data(0).unwrap()).unwrap();
+                image::load_from_memory_with_format(&frame.plane_data(0).unwrap(), ImageFormat::Jpeg).unwrap();
             // let img = match img_result {
             //     Ok(image) => image,
             //     Err(_) => ,
