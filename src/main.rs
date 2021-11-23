@@ -282,8 +282,12 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
+    // let pipeline = gst::parse_launch(&format!(
+    //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! videoconvert ! videoscale ! jpegenc !  appsink name=sink ",
+    //     uri
+    // ))?
     let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! videoconvert ! videoscale ! jpegenc !  appsink name=sink ",
+        "rtspsrc location={} latency=0 ! rtpjitterbuffer ! rtph264depay ! h264parse ! vaapih264dec ! videorate ! videoconvert ! videoscale ! jpegenc ! appsink name=sink ",
         uri
     ))?
     // let pipeline = gst::parse_launch(&format!(
