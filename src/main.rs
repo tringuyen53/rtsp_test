@@ -342,16 +342,30 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
                 })?;
 
                 println!("Buffer {:?}", buffer);
+                
 
-                // let map = buffer.map_readable().map_err(|_| {
-                //     element_error!(
-                //         appsink,
-                //         gst::ResourceError::Failed,
-                //         ("Failed to map buffer readable")
-                //     );
+                let map = buffer.map_readable().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to map buffer readable")
+                    );
 
-                //     gst::FlowError::Error
-                // })?;
+                    gst::FlowError::Error
+                })?;
+
+                //SAVE IMAGE
+                let img = 
+                image::load_from_memory_with_format(map.as_slice(), ImageFormat::Jpeg).unwrap();
+                // let img = match img_result {
+                //     Ok(image) => image,
+                //     Err(_) => ,
+                // };
+                img.save(format!("img-{}", count)).unwrap();
+                let img16 = img.into_rgb8();
+                let data = img16.into_raw() as Vec<u8>;
+                println!("Image length: {}", data.len());
+                count += 1;
 
                 // println!("xxxxxxxx Map {:?}", map);
 
@@ -372,65 +386,65 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
                 // }
                 // got_snapshot = true;
 
-                let caps = sample.caps().expect("Sample without caps");
-                let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
-                println!("info: {:?}", info);
-                // // At this point, buffer is only a reference to an existing memory region somewhere.
-                // // When we want to access its content, we have to map it while requesting the required
-                // // mode of access (read, read/write).
-                // // This type of abstraction is necessary, because the buffer in question might not be
-                // // on the machine's main memory itself, but rather in the GPU's memory.
-                // // So mapping the buffer makes the underlying memory region accessible to us.
-                // // See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
-                let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
-                    .map_err(|_| {
-                        element_error!(
-                            appsink,
-                            gst::ResourceError::Failed,
-                            ("Failed to map buffer readable")
-                        );
+            //     let caps = sample.caps().expect("Sample without caps");
+            //     let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+            //     println!("info: {:?}", info);
+            //     // // At this point, buffer is only a reference to an existing memory region somewhere.
+            //     // // When we want to access its content, we have to map it while requesting the required
+            //     // // mode of access (read, read/write).
+            //     // // This type of abstraction is necessary, because the buffer in question might not be
+            //     // // on the machine's main memory itself, but rather in the GPU's memory.
+            //     // // So mapping the buffer makes the underlying memory region accessible to us.
+            //     // // See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
+            //     let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
+            //         .map_err(|_| {
+            //             element_error!(
+            //                 appsink,
+            //                 gst::ResourceError::Failed,
+            //                 ("Failed to map buffer readable")
+            //             );
 
-                        gst::FlowError::Error
-                    })?;
+            //             gst::FlowError::Error
+            //         })?;
 
-                // We only want to have a single buffer and then have the pipeline terminate
-                println!("Have video frame: {:?}", frame.buffer());
+            //     // We only want to have a single buffer and then have the pipeline terminate
+            //     println!("Have video frame: {:?}", frame.buffer());
                 
 
-                // Calculate a target width/height that keeps the display aspect ratio while having
-                // a height of 240 pixels
-                // let display_aspect_ratio = (frame.width() as f64 * *info.par().numer() as f64)
-                //     / (frame.height() as f64 * *info.par().denom() as f64);
-                // let target_height = 240;
-                // let target_width = target_height as f64 * display_aspect_ratio;
+            //     // Calculate a target width/height that keeps the display aspect ratio while having
+            //     // a height of 240 pixels
+            //     // let display_aspect_ratio = (frame.width() as f64 * *info.par().numer() as f64)
+            //     //     / (frame.height() as f64 * *info.par().denom() as f64);
+            //     // let target_height = 240;
+            //     // let target_width = target_height as f64 * display_aspect_ratio;
 
-                // Create a FlatSamples around the borrowed video frame data from GStreamer with
-                // the correct stride as provided by GStreamer.
-                // let img = image::FlatSamples::<&[u8]> {
-                //     samples: frame.plane_data(0).unwrap(),
-                //     layout: image::flat::SampleLayout {
-                //         channels: 3,       // RGB
-                //         channel_stride: 1, // 1 byte from component to component
-                //         width: frame.width(),
-                //         width_stride: 4, // 4 byte from pixel to pixel
-                //         height: frame.height(),
-                //         height_stride: frame.plane_stride()[0] as usize, // stride from line to line
-                //     },
-                //     color_hint: Some(image::ColorType::Rgb8),
-                // };
+            //     // Create a FlatSamples around the borrowed video frame data from GStreamer with
+            //     // the correct stride as provided by GStreamer.
+            //     // let img = image::FlatSamples::<&[u8]> {
+            //     //     samples: frame.plane_data(0).unwrap(),
+            //     //     layout: image::flat::SampleLayout {
+            //     //         channels: 3,       // RGB
+            //     //         channel_stride: 1, // 1 byte from component to component
+            //     //         width: frame.width(),
+            //     //         width_stride: 4, // 4 byte from pixel to pixel
+            //     //         height: frame.height(),
+            //     //         height_stride: frame.plane_stride()[0] as usize, // stride from line to line
+            //     //     },
+            //     //     color_hint: Some(image::ColorType::Rgb8),
+            //     // };
 
-                //SAVING IMAGE
-                let img = 
-                image::load_from_memory_with_format(&frame.plane_data(0).unwrap(), ImageFormat::Jpeg).unwrap();
-            // let img = match img_result {
-            //     Ok(image) => image,
-            //     Err(_) => ,
-            // };
-                img.save(format!("img-{}", count)).unwrap();
-                let img16 = img.into_rgb8();
-                let data = img16.into_raw() as Vec<u8>;
-                println!("Image length: {}", data.len());
-                count += 1;
+            //     //SAVING IMAGE
+            //     let img = 
+            //     image::load_from_memory_with_format(&frame.plane_data(0).unwrap(), ImageFormat::Jpeg).unwrap();
+            // // let img = match img_result {
+            // //     Ok(image) => image,
+            // //     Err(_) => ,
+            // // };
+            //     img.save(format!("img-{}", count)).unwrap();
+            //     let img16 = img.into_rgb8();
+            //     let data = img16.into_raw() as Vec<u8>;
+            //     println!("Image length: {}", data.len());
+            //     count += 1;
 
                 // // let img_buffer = img.as_slice();                
 
@@ -468,101 +482,6 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
 
     Ok(pipeline)
 }
-
-// //APPSRC
-// fn create_pipeline_appsrc(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pipeline, Error> {
-//     gst::init()?;
-
-//     let pipeline = gst::parse_launch(&format!(
-//         "rtspsrc location={} latency=0 ! rtph264depay ! h264parse ! vaapih264dec ! videoconvert ! appsrc name=src",
-//         uri
-//     ))?
-//     .downcast::<gst::Pipeline>()
-//     .expect("Expected a gst::Pipeline");
-
-//     println!("pipeline: {:?}", pipeline);
-
-//     let appsrc = pipeline
-//         .by_name("src")
-//         .expect("Sink element not found")
-//         .dynamic_cast::<gst_app::AppSrc>()
-//         .expect("Source element is expected to be an appsrc!");
-
-//     // Specify the format we want to provide as application into the pipeline
-//     // by creating a video info with the given format and creating caps from it for the appsrc element.
-//     let video_info =
-//         gst_video::VideoInfo::builder(gst_video::VideoFormat::Bgrx, 1920, 1080)
-//             .fps(gst::Fraction::new(2, 1))
-//             .build()
-//             .expect("Failed to create video info");
-
-//     appsrc.set_caps(Some(&video_info.to_caps().unwrap()));
-
-//     // Our frame counter, that is stored in the mutable environment
-//     // of the closure of the need-data callback
-//     //
-//     // Alternatively we could also simply start a new thread that
-//     // pushes a buffer to the appsrc whenever it wants to, but this
-//     // is not really needed here. It is *not required* to use the
-//     // need-data callback.
-//     let mut i = 0;
-//     appsrc.set_callbacks(
-//         // Since our appsrc element operates in pull mode (it asks us to provide data),
-//         // we add a handler for the need-data callback and provide new data from there.
-//         // In our case, we told gstreamer that we do 2 frames per second. While the
-//         // buffers of all elements of the pipeline are still empty, this will be called
-//         // a couple of times until all of them are filled. After this initial period,
-//         // this handler will be called (on average) twice per second.
-//         gst_app::AppSrcCallbacks::builder()
-//             .need_data(move |appsrc, _| {
-//                 // We only produce 100 frames
-//                 // if i == 100 {
-//                 //     let _ = appsrc.end_of_stream();
-//                 //     return;
-//                 // }
-
-//                 println!("Producing frame {}", i);
-
-//                 let r = if i % 2 == 0 { 0 } else { 255 };
-//                 let g = if i % 3 == 0 { 0 } else { 255 };
-//                 let b = if i % 5 == 0 { 0 } else { 255 };
-
-//                 // Create the buffer that can hold exactly one BGRx frame.
-//                 let mut buffer = gst::Buffer::with_size(video_info.size()).unwrap();
-//                 {
-//                     let buffer = buffer.get_mut().unwrap();
-//                     // For each frame we produce, we set the timestamp when it should be displayed
-//                     // (pts = presentation time stamp)
-//                     // The autovideosink will use this information to display the frame at the right time.
-//                     // buffer.set_pts(i * 500 * gst::MSECOND);
-
-//                     // At this point, buffer is only a reference to an existing memory region somewhere.
-//                     // When we want to access its content, we have to map it while requesting the required
-//                     // mode of access (read, read/write).
-//                     // See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
-//                     let mut data = buffer.map_writable().unwrap();
-
-//                     for p in data.as_mut_slice().chunks_mut(4) {
-//                         assert_eq!(p.len(), 4);
-//                         p[0] = b;
-//                         p[1] = g;
-//                         p[2] = r;
-//                         p[3] = 0;
-//                     }
-//                 }
-
-//                 i += 1;
-
-//                 // appsrc already handles the error here
-//                 let _ = appsrc.push_buffer(buffer);
-
-//                 println!("Buffer: {:?}", buffer);
-//             })
-//             .build(),
-//     );
-
-//     Ok(pipeline)
-// }
 
 fn main_loop(pipeline: gst::Pipeline, position: u64) -> Result<(), Error> {
     println!("Start main loop");
