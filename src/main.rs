@@ -257,6 +257,8 @@ use gst::element_error;
 use gst::glib;
 use gst::prelude::*;
 use byte_slice_cast::*;
+use std::io::Write; // bring trait into scope
+use std::fs;
 
 use anyhow::Error;
 use derive_more::{Display, Error};
@@ -287,7 +289,7 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
     //     uri
     // ))?
     let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} latency=0 ! rtpjitterbuffer ! rtph264depay ! h264parse ! vaapih264dec ! videorate ! videoconvert ! videoscale ! jpegenc ! appsink name=sink ",
+        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! avdec_h264 ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
         uri
     ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -313,11 +315,12 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
     // Tell the appsink what format we want.
     // This can be set after linking the two objects, because format negotiation between
     // both elements will happen during pre-rolling of the pipeline.
-    appsink.set_caps(Some(
-        &gst::Caps::builder("video/x-raw")
-            .field("framerate", "5/1".to_string())
-            .build(),
-    ));
+    // appsink.set_caps(Some(
+    //     &gst::Caps::builder("video/x-h264")
+    //         // .field("framerate", gst::Fraction::new(5, 1))
+    //         .field("stream-format", "byte-stream")
+    //         .build(),
+    // ));
     println!("Before callback");
     // let mut got_snapshot = false;
 
@@ -353,31 +356,41 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
 
                     gst::FlowError::Error
                 })?;
+                println!("xxxxxxxx Map {:?}", map);   
 
-                //SAVE IMAGE
-                let img = 
-                image::load_from_memory_with_format(map.as_slice(), ImageFormat::Jpeg).unwrap();
-                // let img = match img_result {
-                //     Ok(image) => image,
-                //     Err(_) => ,
-                // };
-                img.save(format!("img-{}", count)).unwrap();
-                let img16 = img.into_rgb8();
-                let data = img16.into_raw() as Vec<u8>;
-                println!("Image length: {}", data.len());
-                count += 1;
+                let samples = map.as_slice_of::<u8>().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to interprete buffer as S16 PCM")
+                    );
 
-                // println!("xxxxxxxx Map {:?}", map);
+                    gst::FlowError::Error
+                })?;
 
-                // let samples = map.as_slice_of::<u8>().map_err(|_| {
-                //     element_error!(
-                //         appsink,
-                //         gst::ResourceError::Failed,
-                //         ("Failed to interprete buffer as S16 PCM")
-                //     );
+                 //SAVE IMAGE
+                // let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
+                // file.write_all(samples);
 
-                //     gst::FlowError::Error
-                // })?;
+                let img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match img_result {
+                    Ok(image) => {
+                            image.save(format!("img-{}.jpg", count)).unwrap();
+                            // match res {
+                            //     Ok(_) => count += 1,
+                            //     Err(_) => count += 1
+                            // }
+                            count += 1;
+                        },
+                    Err(_) => (),
+                };
+                
+                // let img16 = img.into_rgb8();
+                // let data = img16.into_raw() as Vec<u8>;
+                // println!("Image length: {}", data.len());
+                
+
 
 
                 // Make sure that we only get a single buffer
@@ -386,9 +399,9 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
                 // }
                 // got_snapshot = true;
 
-            //     let caps = sample.caps().expect("Sample without caps");
-            //     let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
-            //     println!("info: {:?}", info);
+                // let caps = sample.caps().expect("Sample without caps");
+                // let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                // println!("info: {:?}", info);
             //     // // At this point, buffer is only a reference to an existing memory region somewhere.
             //     // // When we want to access its content, we have to map it while requesting the required
             //     // // mode of access (read, read/write).
@@ -396,19 +409,19 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
             //     // // on the machine's main memory itself, but rather in the GPU's memory.
             //     // // So mapping the buffer makes the underlying memory region accessible to us.
             //     // // See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
-            //     let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
-            //         .map_err(|_| {
-            //             element_error!(
-            //                 appsink,
-            //                 gst::ResourceError::Failed,
-            //                 ("Failed to map buffer readable")
-            //             );
+                // let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
+                //     .map_err(|_| {
+                //         element_error!(
+                //             appsink,
+                //             gst::ResourceError::Failed,
+                //             ("Failed to map buffer readable")
+                //         );
 
-            //             gst::FlowError::Error
-            //         })?;
+                //         gst::FlowError::Error
+                //     })?;
 
-            //     // We only want to have a single buffer and then have the pipeline terminate
-            //     println!("Have video frame: {:?}", frame.buffer());
+                // // We only want to have a single buffer and then have the pipeline terminate
+                // println!("Have video frame: {:?}", frame.buffer());
                 
 
             //     // Calculate a target width/height that keeps the display aspect ratio while having
@@ -418,20 +431,21 @@ fn create_pipeline(uri: String, out_path: std::path::PathBuf) -> Result<gst::Pip
             //     // let target_height = 240;
             //     // let target_width = target_height as f64 * display_aspect_ratio;
 
-            //     // Create a FlatSamples around the borrowed video frame data from GStreamer with
-            //     // the correct stride as provided by GStreamer.
-            //     // let img = image::FlatSamples::<&[u8]> {
-            //     //     samples: frame.plane_data(0).unwrap(),
-            //     //     layout: image::flat::SampleLayout {
-            //     //         channels: 3,       // RGB
-            //     //         channel_stride: 1, // 1 byte from component to component
-            //     //         width: frame.width(),
-            //     //         width_stride: 4, // 4 byte from pixel to pixel
-            //     //         height: frame.height(),
-            //     //         height_stride: frame.plane_stride()[0] as usize, // stride from line to line
-            //     //     },
-            //     //     color_hint: Some(image::ColorType::Rgb8),
-            //     // };
+                // Create a FlatSamples around the borrowed video frame data from GStreamer with
+                // the correct stride as provided by GStreamer.
+                // let img = image::FlatSamples::<&[u8]> {
+                //     samples: frame.plane_data(0).unwrap(),
+                //     layout: image::flat::SampleLayout {
+                //         channels: 3,       // RGB
+                //         channel_stride: 1, // 1 byte from component to component
+                //         width: frame.width(),
+                //         width_stride: 4, // 4 byte from pixel to pixel
+                //         height: frame.height(),
+                //         height_stride: frame.plane_stride()[0] as usize, // stride from line to line
+                //     },
+                //     color_hint: Some(image::ColorType::Rgb8),
+                // };
+                
 
             //     //SAVING IMAGE
             //     let img = 
