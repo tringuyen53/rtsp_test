@@ -17,6 +17,7 @@ use gst::prelude::*;
 use byte_slice_cast::*;
 use std::io::Write; // bring trait into scope
 use std::fs;
+use tokio::runtime::Handle;
 
 use anyhow::Error;
 use derive_more::{Display, Error};
@@ -198,33 +199,56 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
 
     Ok(())
 }
+#[tokio::main]
+async fn main() {
+    let handle = Handle::current();
 
-fn main() {
-    // use std::env;
+    let urls = [
+        // "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
+        // "rtsp://10.50.29.36/1/h264major",
+        // "rtsp://10.50.31.171/1/h264major",
+        // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
+        "rtsp://10.50.30.100/1/h264major",
 
-    // let mut args = env::args();
+    ];
 
-    // Parse commandline arguments: input URI, position in seconds, output path
-    // let _arg0 = args.next().unwrap();
-    // let uri = args
-    //     .next()
-    //     .expect("No input URI provided on the commandline");
-    // let position = args
-    //     .next()
-    //     .expect("No position in second on the commandline");
-    // let position = position
-    //     .parse::<u64>()
-    //     .expect("Failed to parse position as integer");
-    // let out_path = args
-    //     .next()
-    //     .expect("No output path provided on the commandline");
-    // let uri = "rtsp://10.50.13.231/1/h264major".to_owned();
-    // let position = 10;
-    // let out_path = "/img";
-    // let out_path = std::path::PathBuf::from(out_path);
-
-    match create_pipeline(uri).and_then(|pipeline| main_loop(pipeline)) {
-        Ok(r) => r,
-        Err(e) => eprintln!("Error! {}", e),
+    for url in urls {
+        handle.spawn_blocking(|| {  
+            match create_pipeline(url).and_then(|pipeline| main_loop(pipeline)) {
+                    Ok(r) => r,
+                    Err(e) => println!("Error! {}", e),
+                } 
+            });
     }
+
+    loop {}
 }
+// fn main() {
+//     // use std::env;
+
+//     // let mut args = env::args();
+
+//     // Parse commandline arguments: input URI, position in seconds, output path
+//     // let _arg0 = args.next().unwrap();
+//     // let uri = args
+//     //     .next()
+//     //     .expect("No input URI provided on the commandline");
+//     // let position = args
+//     //     .next()
+//     //     .expect("No position in second on the commandline");
+//     // let position = position
+//     //     .parse::<u64>()
+//     //     .expect("Failed to parse position as integer");
+//     // let out_path = args
+//     //     .next()
+//     //     .expect("No output path provided on the commandline");
+//     // let uri = "rtsp://10.50.13.231/1/h264major".to_owned();
+//     // let position = 10;
+//     // let out_path = "/img";
+//     // let out_path = std::path::PathBuf::from(out_path);
+
+//     match create_pipeline(uri).and_then(|pipeline| main_loop(pipeline)) {
+//         Ok(r) => r,
+//         Err(e) => eprintln!("Error! {}", e),
+//     }
+// }
