@@ -47,14 +47,14 @@ fn create_pipeline(uri: String) -> Result<gst::Pipeline, Error> {
     //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! videoconvert ! videoscale ! jpegenc !  appsink name=sink ",
     //     uri
     // ))?
-    let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! avdec_h264 ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
-        uri
-    ))?
-    // let pipeline = gst::parse_launch(&format!(
-    //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
-    //     uri
-    // ))?
+    //let pipeline = gst::parse_launch(&format!(
+    //    "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! avdec_h264 ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
+  //      uri
+//    ))?
+     let pipeline = gst::parse_launch(&format!(
+         "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
+         uri
+     ))?
     // let pipeline = gst::parse_launch(&format!(
     //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
     //     uri
@@ -208,13 +208,13 @@ async fn main() {
         // "rtsp://10.50.29.36/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
-        "rtsp://10.50.30.100/1/h264major",
+        "rtsp://10.50.13.234/1/h264major",
 
     ];
 
     for url in urls {
-        handle.spawn_blocking(|| {  
-            match create_pipeline(url).and_then(|pipeline| main_loop(pipeline)) {
+        handle.spawn_blocking(move || {  
+            match create_pipeline(url.to_owned()).and_then(|pipeline| main_loop(pipeline)) {
                     Ok(r) => r,
                     Err(e) => println!("Error! {}", e),
                 } 
