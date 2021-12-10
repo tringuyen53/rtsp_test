@@ -18,7 +18,7 @@ use byte_slice_cast::*;
 use std::io::Write; // bring trait into scope
 use std::fs;
 use tokio::runtime::Handle;
-
+use rand::Rng;
 use anyhow::Error;
 use derive_more::{Display, Error};
 use image::{DynamicImage, ImageFormat};
@@ -39,7 +39,7 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
-fn create_pipeline(uri: String) -> Result<gst::Pipeline, Error> {
+fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -208,13 +208,18 @@ async fn main() {
         // "rtsp://10.50.29.36/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
+        "rtsp://10.50.13.237/1/h264major",
+        "rtsp://10.50.13.233/1/h264major",
         "rtsp://10.50.13.234/1/h264major",
-
+        "rtsp://10.50.13.235/1/h264major",
+        "rtsp://10.50.13.236/1/h264major",
     ];
+    let mut rng = rand::thread_rng();
 
     for url in urls {
+        let n1: u8 = rng.gen();
         handle.spawn_blocking(move || {  
-            match create_pipeline(url.to_owned()).and_then(|pipeline| main_loop(pipeline)) {
+            match create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)) {
                     Ok(r) => r,
                     Err(e) => println!("Error! {}", e),
                 } 
