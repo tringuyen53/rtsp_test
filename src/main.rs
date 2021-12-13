@@ -214,21 +214,21 @@ async fn main() {
         //"rtsp://10.50.13.235/1/h264major",
         "rtsp://10.50.13.236/1/h264major",
     ];
-    //let mut rng = rand::thread_rng();
+    let mut rng = rand::thread_rng();
 
-//    for url in urls {
-        //let n1: u8 = rng.gen();
-//        handle.spawn_blocking(move || {  
-//           match create_pipeline(url.to_owned(), 1).and_then(|pipeline| main_loop(pipeline)) {
-//                    Ok(r) => r,
-//                    Err(e) => println!("Error! {}", e),
-//                } 
-//            });
-//    }
-match create_pipeline("rtsp://10.50.13.236/1/h264major".to_owned(), 1).and_then(|pipeline| main_loop(pipeline)) {
-                    Ok(r) => r,
-                    Err(e) => println!("Error! {}", e),
-                }
+   for url in urls {
+        let n1: u8 = rng.gen();
+       tokio::task::spawn_blocking(move || {  
+          match create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)) {
+                   Ok(r) => r,
+                   Err(e) => println!("Error! {}", e),
+               } 
+           });
+   }
+// match create_pipeline("rtsp://10.50.13.236/1/h264major".to_owned(), 1).and_then(|pipeline| main_loop(pipeline)) {
+//                     Ok(r) => r,
+//                     Err(e) => println!("Error! {}", e),
+//                 }
     loop {}
 }
 // fn main() {
