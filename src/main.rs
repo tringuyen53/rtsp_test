@@ -52,7 +52,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
+         "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! jpegenc ! image/jpeg ! appsink name=sink" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -78,12 +78,12 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     // Tell the appsink what format we want.
     // This can be set after linking the two objects, because format negotiation between
     // both elements will happen during pre-rolling of the pipeline.
-    // appsink.set_caps(Some(
-    //     &gst::Caps::builder("video/x-h264")
-    //         // .field("framerate", gst::Fraction::new(5, 1))
+     appsink.set_caps(Some(
+         &gst::Caps::builder("video/x-raw")
+              .field("framerate", gst::Fraction::new(5, 1))
     //         .field("stream-format", "byte-stream")
-    //         .build(),
-    // ));
+             .build(),
+     ));
     println!("Before callback");
     // let mut got_snapshot = false;
 
@@ -135,19 +135,19 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 // let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                 // file.write_all(samples);
 
-                let img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match img_result {
-                    Ok(image) => {
-                            image.save(format!("img-{}.jpg", count)).unwrap();
+                //let img_result = 
+                //    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                //match img_result {
+                //    Ok(image) => {
+                //            image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                             // match res {
                             //     Ok(_) => count += 1,
                             //     Err(_) => count += 1
                             // }
-                            count += 1;
-                        },
-                    Err(_) => (),
-                };
+                 //           count += 1;
+                  //      },
+                  //  Err(_) => (),
+                //};
                 
                 // let img16 = img.into_rgb8();
                 // let data = img16.into_raw() as Vec<u8>;
@@ -208,18 +208,18 @@ async fn main() {
         // "rtsp://10.50.29.36/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
-        "rtsp://10.50.13.235/1/h264major",
+        //"rtsp://10.50.13.237/1/h264major",
+        //"rtsp://10.50.13.233/1/h264major",
+        //"rtsp://10.50.13.234/1/h264major",
+        //"rtsp://10.50.13.235/1/h264major",
         "rtsp://10.50.13.236/1/h264major",
     ];
-    let mut rng = rand::thread_rng();
+    //let mut rng = rand::thread_rng();
 
     for url in urls {
-        let n1: u8 = rng.gen();
+        //let n1: u8 = rng.gen();
         handle.spawn_blocking(move || {  
-            match create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)) {
+            match create_pipeline(url.to_owned(), 1).and_then(|pipeline| main_loop(pipeline)) {
                     Ok(r) => r,
                     Err(e) => println!("Error! {}", e),
                 } 
