@@ -72,7 +72,7 @@ async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> 
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    println!("appsink: {:?}", appsink);
+  //  println!("appsink: {:?}", appsink);
 
     // Don't synchronize on the clock, we only want a snapshot asap.
     // appsink.set_property("sync", false);
@@ -86,7 +86,7 @@ async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> 
     //         .field("stream-format", "byte-stream")
            //  .build(),
      //));
-    println!("Before callback");
+    //println!("Before callback");
     // let mut got_snapshot = false;
 
     let mut count = 0;
@@ -98,7 +98,7 @@ async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> 
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-                println!("Sample: {:?}", sample);
+      //          println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
@@ -109,7 +109,7 @@ async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> 
                     gst::FlowError::Error
                 })?;
 
-                println!("Buffer {:?}", buffer);
+        //        println!("Buffer {:?}", buffer);
                 
 
                 let map = buffer.map_readable().map_err(|_| {
@@ -121,7 +121,7 @@ async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> 
 
                     gst::FlowError::Error
                 })?;
-                println!("xxxxxxxx Map {:?}", map);   
+  //              println!("xxxxxxxx Map {:?}", map);   
 
                 let samples = map.as_slice_of::<u8>().map_err(|_| {
                     element_error!(
@@ -172,7 +172,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
         .bus()
         .expect("Pipeline without bus. Shouldn't happen!");
 
-    println!("Bus: {:?}", bus);
+//    println!("Bus: {:?}", bus);
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         // println!("In loop msg: {:?}", msg);
@@ -270,9 +270,10 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
             .on_tell(|message: &str, _| {
 let mut rng = rand::thread_rng();                
 let n1: u8 = rng.gen();
-                rt.spawn(async move {  
+println!("spawn new actor: {:?} - {:?}", message, n1);
+                rt.spawn( async move {  
                     create_pipeline(message.to_owned(), n1).await.and_then(|pipeline| main_loop(pipeline))
-                });
+              });
             })
             .on_fallback(|unknown, _sender_addr| {
                 println!("unknown");
