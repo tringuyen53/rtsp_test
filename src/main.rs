@@ -250,7 +250,7 @@ async fn main() {
                 .with_distributor(Distributor::named("rtsp"))
                 .with_exec(get_rtsp_stream)
         })
-    }).map_error(|_| println!("Error"));
+    }).map_err(|_| println!("Error"));
 
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(5));
@@ -263,13 +263,14 @@ async fn main() {
 
 async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let mut rng = rand::thread_rng();
+    //let mut rng = rand::thread_rng();
     loop {
         MessageHandler::new(ctx.recv().await?)
             .on_tell(|message: &str, _| {
-                let n1: u8 = rng.gen();
+let mut rng = rand::thread_rng();                
+let n1: u8 = rng.gen();
                 rt.spawn(async move {  
-                    create_pipeline(message.to_owned(), n1).and_then(|pipeline| main_loop(pipeline))
+                    create_pipeline(message.to_owned(), n1).await.and_then(|pipeline| main_loop(pipeline))
                 });
             })
             .on_fallback(|unknown, _sender_addr| {
