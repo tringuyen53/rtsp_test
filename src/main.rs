@@ -41,7 +41,7 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
-async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -137,19 +137,19 @@ async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> 
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-              let img_result = 
-                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-              match img_result {
-                  Ok(image) => {
-                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+     //         let img_result = 
+       //           image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+         //     match img_result {
+           //       Ok(image) => {
+             //             image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                              //match res {
                              //    Ok(_) => count += 1,
                              //    Err(_) => count += 1
                             // }
-                          count += 1;
-                     },
-                  Err(_) => (),
-              };
+               //           count += 1;
+                   //  },
+                 // Err(_) => (),
+             // };
                 
                 // let img16 = img.into_rgb8();
                 // let data = img16.into_raw() as Vec<u8>;
@@ -271,9 +271,11 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 let mut rng = rand::thread_rng();                
 let n1: u8 = rng.gen();
 println!("spawn new actor: {:?} - {:?}", message, n1);
-                rt.spawn( async move {  
-                    create_pipeline(message.to_owned(), n1).await.and_then(|pipeline| main_loop(pipeline))
-              });
+                rt.spawn_blocking( move || {  
+                  create_pipeline(message.to_owned(), n1).and_then(|pipeline| main_loop(pipeline));
+//let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
+  //                  main_loop(pipeline)          
+    });
             })
             .on_fallback(|unknown, _sender_addr| {
                 println!("unknown");
