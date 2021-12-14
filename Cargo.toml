@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 image = "0.23.14"
 rand = "0.8.4"
+bastion = { git = "https://github.com/bastion-rs/bastion.git", branch = "master" }
 # ffmpeg-next = "4.4.0"
 # opencv = {version = "*", features = ["clang-runtime"]}
 tokio = { version = "*", features = ["full"]}

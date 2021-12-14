@@ -22,6 +22,8 @@ use rand::Rng;
 use anyhow::Error;
 use derive_more::{Display, Error};
 use image::{DynamicImage, ImageFormat};
+use bastion::distributor::*;
+use bastion::prelude::*;
 
 // #[path = "../examples-common.rs"]
 // mod examples_common;
@@ -39,7 +41,7 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
-fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
+async fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -201,7 +203,8 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
 }
 #[tokio::main]
 async fn main() {
-    let handle = Handle::current();
+    // let handle = Handle::current();
+    
 
     let urls = [
         // "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
@@ -214,22 +217,65 @@ async fn main() {
         //"rtsp://10.50.13.235/1/h264major",
         "rtsp://10.50.13.236/1/h264major",
     ];
-    let mut rng = rand::thread_rng();
+//     let mut rng = rand::thread_rng();
 
-   for url in urls {
-        let n1: u8 = rng.gen();
-       tokio::task::spawn_blocking(move || {  
-          match create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)) {
-                   Ok(r) => r,
-                   Err(e) => println!("Error! {}", e),
-               } 
-           });
-   }
+//    for url in urls {
+//         let n1: u8 = rng.gen();
+//        tokio::task::spawn(move || {  
+//           match create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)) {
+//                    Ok(r) => r,
+//                    Err(e) => println!("Error! {}", e),
+//                } 
+//            });
+//    }
+// let rt = tokio::runtime::Runtime::new().unwrap();
+//    for url in urls {
+//     // let n1: u8 = rng.gen();
+//   rt.spawn(async move {  
+//         create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)).await
+//     });
+// }
 // match create_pipeline("rtsp://10.50.13.236/1/h264major".to_owned(), 1).and_then(|pipeline| main_loop(pipeline)) {
 //                     Ok(r) => r,
 //                     Err(e) => println!("Error! {}", e),
 //                 }
-    loop {}
+    // loop {}
+
+    Bastion::init();
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_error(|_| println!("Error"));
+
+    Bastion::start();
+    std::thread::sleep(std::time::Duration::from_secs(5));
+    let rstp_actor = Distributor::named("rtsp");
+    rstp_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
+
+    Bastion::block_until_stopped();
+
+}
+
+async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let mut rng = rand::thread_rng();
+    loop {
+        MessageHandler::new(ctx.recv().await?)
+            .on_tell(|message: &str, _| {
+                let n1: u8 = rng.gen();
+                rt.spawn(async move {  
+                    create_pipeline(message.to_owned(), n1).and_then(|pipeline| main_loop(pipeline))
+                });
+            })
+            .on_fallback(|unknown, _sender_addr| {
+                println!("unknown");
+            });
+    }
 }
 // fn main() {
 //     // use std::env;
