@@ -137,19 +137,19 @@ struct ErrorMessage {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-     //         let img_result = 
-       //           image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-         //     match img_result {
-           //       Ok(image) => {
-             //             image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+//              let img_result = 
+  //                image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+    //          match img_result {
+      //            Ok(image) => {
+        //                  image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                              //match res {
                              //    Ok(_) => count += 1,
                              //    Err(_) => count += 1
                             // }
-               //           count += 1;
-                   //  },
-                 // Err(_) => (),
-             // };
+          //                count += 1;
+            //         },
+              //    Err(_) => (),
+           //   };
                 
                 // let img16 = img.into_rgb8();
                 // let data = img16.into_raw() as Vec<u8>;
@@ -211,11 +211,39 @@ async fn main() {
         // "rtsp://10.50.29.36/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
+        // "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
+        // "rtsp://10.50.31.171/1/h264major",
+        "rtsp://10.50.29.36/1/h264major",
+        "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
         "rtsp://10.50.13.237/1/h264major",
         "rtsp://10.50.13.233/1/h264major",
         "rtsp://10.50.13.234/1/h264major",
         "rtsp://10.50.13.235/1/h264major",
         "rtsp://10.50.13.236/1/h264major",
+        "rtsp://10.50.13.237/1/h264major",
+        "rtsp://10.50.13.238/1/h264major",
+        "rtsp://10.50.13.239/1/h264major",
+        "rtsp://10.50.13.240/1/h264major",
+        "rtsp://10.50.13.241/1/h264major",
+        "rtsp://10.50.13.242/1/h264major",
+        "rtsp://10.50.13.242/1/h264major",
+        "rtsp://10.50.13.243/1/h264major",
+        "rtsp://10.50.13.244/1/h264major",
+        "rtsp://10.50.13.245/1/h264major",
+        "rtsp://10.50.13.246/1/h264major",
+        "rtsp://10.50.13.247/1/h264major",
+        "rtsp://10.50.13.248/1/h264major",
+        "rtsp://10.50.13.249/1/h264major",
+        "rtsp://10.50.13.250/1/h264major",
+        "rtsp://10.50.13.251/1/h264major",
+        "rtsp://10.50.13.252/1/h264major",
+        "rtsp://10.50.13.253/1/h264major",
+        "rtsp://10.50.13.254/1/h264major",
+        "rtsp://10.50.31.171/1/h264major",
+        "rtsp://10.50.31.236/1/h264major",
+        "rtsp://10.50.14.39/1/h264major",
+        "rtsp://10.50.30.118/1/h264major",
+        "rtsp://10.50.31.241/axis-media/media.amp",
     ];
 //     let mut rng = rand::thread_rng();
 
