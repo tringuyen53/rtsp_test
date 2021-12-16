@@ -137,19 +137,19 @@ struct ErrorMessage {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-//              let img_result = 
-  //                image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-    //          match img_result {
-      //            Ok(image) => {
-        //                  image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
-                             //match res {
+              let img_result = 
+                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+              match img_result {
+                  Ok(image) => {
+                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+                            //match res {
                              //    Ok(_) => count += 1,
                              //    Err(_) => count += 1
                             // }
-          //                count += 1;
-            //         },
-              //    Err(_) => (),
-           //   };
+                          count += 1;
+                     },
+                  Err(_) => (),
+              };
                 
                 // let img16 = img.into_rgb8();
                 // let data = img16.into_raw() as Vec<u8>;
