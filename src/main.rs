@@ -152,9 +152,13 @@ struct ErrorMessage {
 //              };
               // drop(map); 
            	drop(samples);
-              drop(map);
-drop(buffer);
-drop(sample);                
+            // drop(map);
+            // drop(buffer);
+            // drop(sample);        
+            map.drop();
+            buffer.remove_all_memory();
+            sample.drop();
+            
                 Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
             })
