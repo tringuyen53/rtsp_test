@@ -54,7 +54,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! image/jpeg ! appsink name=sink" ,
+         "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! image/jpeg ! appsink name=sink max-buffers=1 emit-signals=true drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -83,7 +83,7 @@ struct ErrorMessage {
      //appsink.set_caps(Some(
        //  &gst::Caps::builder("video/x-raw")
          //     .field("framerate", gst::Fraction::new(5, 1))
-    //         .field("stream-format", "byte-stream")
+   //         .field("stream-format", "byte-stream")
            //  .build(),
      //));
     //println!("Before callback");
@@ -98,7 +98,7 @@ struct ErrorMessage {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-      //          println!("Sample: {:?}", sample);
+                println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
@@ -137,24 +137,24 @@ struct ErrorMessage {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-              let img_result = 
-                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-              match img_result {
-                  Ok(image) => {
-                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+//              let img_result = 
+//                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+//              match img_result {
+//                  Ok(image) => {
+//                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                             //match res {
                              //    Ok(_) => count += 1,
                              //    Err(_) => count += 1
                             // }
-                          count += 1;
-                     },
-                  Err(_) => (),
-              };
-                
-                // let img16 = img.into_rgb8();
-                // let data = img16.into_raw() as Vec<u8>;
-                // println!("Image length: {}", data.len());
-                
+//                          count += 1;
+//                     },
+//                  Err(_) => (),
+//              };
+              // drop(map); 
+           	drop(samples);
+              drop(map);
+drop(buffer);
+drop(sample);                
                 Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
             })
@@ -182,6 +182,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
             MessageView::Eos(..) => break,
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
+                println!("Error: {:?}",err.error());
                 return Err(ErrorMessage {
                     src: msg
                         .src()
@@ -245,7 +246,7 @@ async fn main() {
         "rtsp://10.50.30.118/1/h264major",
         "rtsp://10.50.31.241/axis-media/media.amp",
     ];
-//     let mut rng = rand::thread_rng();
+//     let mut rng = rand::thread_rng();	
 
 //    for url in urls {
 //         let n1: u8 = rng.gen();
@@ -282,11 +283,13 @@ async fn main() {
 
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(5));
-    let rstp_actor = Distributor::named("rtsp");
+    let rtsp_actor = Distributor::named("rtsp");
     for url in urls {
-        rstp_actor.tell_one(url).expect("tell failed");
+        rtsp_actor.tell_one(url).expect("tell failed");
     }
-    Bastion::block_until_stopped();
+//	let res = rtsp_actor.tell_one("rtsp://10.50.13.237/1/h264major").expect("tell failed");
+//println!("Result: {:?}", res);    
+Bastion::block_until_stopped();
 
 }
 
@@ -296,11 +299,11 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     loop {
         MessageHandler::new(ctx.recv().await?)
             .on_tell(|message: &str, _| {
-let mut rng = rand::thread_rng();                
-let n1: u8 = rng.gen();
-println!("spawn new actor: {:?} - {:?}", message, n1);
+//let mut rng = rand::thread_rng();                
+//let n1: u8 = rng.gen();
+//println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.to_owned(), n1).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.to_owned(), 1).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
