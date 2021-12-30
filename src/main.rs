@@ -54,7 +54,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=0 drop-on-latency=true ! rtpjitterbuffer ! rtph264depay ! h264parse ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
+         "rtspsrc location={} latency=0 drop-on-latency=true ! rtph264depay ! h264parse ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -64,7 +64,7 @@ struct ErrorMessage {
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
 
-    println!("pipeline: {:?}", pipeline);
+    println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
     let appsink = pipeline
         .by_name("sink")
@@ -98,7 +98,7 @@ struct ErrorMessage {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-                println!("Sample: {:?}", sample);
+//                println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
@@ -137,19 +137,19 @@ struct ErrorMessage {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-     //         let img_result = 
-     //             image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-      //        match img_result {
-      //            Ok(image) => {
-       //                   image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+//              let img_result = 
+//                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+//              match img_result {
+//                  Ok(image) => {
+//                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                             //match res {
                              //    Ok(_) => count += 1,
                              //    Err(_) => count += 1
                             // }
-         //                 count += 1;
-         //            },
-         //         Err(_) => (),
-         //     };
+//                          count += 1;
+//                     },
+//                  Err(_) => (),
+//              };
                
            	drop(samples);
              drop(map);
@@ -215,9 +215,13 @@ async fn main() {
         // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
         // "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
-        "rtsp://10.50.29.36/1/h264major",
-        "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
-        "rtsp://10.50.13.237/1/h264major",
+//        "rtsp://10.50.29.36/1/h264major",
+        //"rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
+//        "rtsp://10.50.13.237/1/h264major",
+ "rtsp://10.50.13.229/1/h264major",
+ "rtsp://10.50.13.230/1/h264major",
+ "rtsp://10.50.13.231/1/h264major",
+ "rtsp://10.50.13.232/1/h264major",
         "rtsp://10.50.13.233/1/h264major",
         "rtsp://10.50.13.234/1/h264major",
         "rtsp://10.50.13.235/1/h264major",
@@ -241,11 +245,11 @@ async fn main() {
         "rtsp://10.50.13.252/1/h264major",
         "rtsp://10.50.13.253/1/h264major",
         "rtsp://10.50.13.254/1/h264major",
-        "rtsp://10.50.31.171/1/h264major",
-        "rtsp://10.50.31.236/1/h264major",
-        "rtsp://10.50.14.39/1/h264major",
-        "rtsp://10.50.30.118/1/h264major",
-        "rtsp://10.50.31.241/axis-media/media.amp",
+        //"rtsp://10.50.31.171/1/h264major",
+        //"rtsp://10.50.31.236/1/h264major",
+        //"rtsp://10.50.14.39/1/h264major",
+        //"rtsp://10.50.30.118/1/h264major",
+        //"rtsp://10.50.31.241/axis-media/media.amp",
     ];
 //     let mut rng = rand::thread_rng();	
 
@@ -288,7 +292,7 @@ async fn main() {
     for url in urls {
         rtsp_actor.tell_one(url).expect("tell failed");
     }
-//rtsp_actor.tell_one("rtsp://10.50.13.237/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.231/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
