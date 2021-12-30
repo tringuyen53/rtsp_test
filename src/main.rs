@@ -54,11 +54,11 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! image/jpeg ! appsink name=sink max-buffers=1 emit-signals=true drop=true" ,
+         "rtspsrc location={} latency=0 drop-on-latency=true ! rtpjitterbuffer ! rtph264depay ! h264parse ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
-    //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
+    //     "rtspsrc location={} latency=100 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
     //     uri
     // ))?
     .downcast::<gst::Pipeline>()
@@ -137,27 +137,24 @@ struct ErrorMessage {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-//              let img_result = 
-//                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-//              match img_result {
-//                  Ok(image) => {
-//                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+     //         let img_result = 
+     //             image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+      //        match img_result {
+      //            Ok(image) => {
+       //                   image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                             //match res {
                              //    Ok(_) => count += 1,
                              //    Err(_) => count += 1
                             // }
-//                          count += 1;
-//                     },
-//                  Err(_) => (),
-//              };
-              // drop(map); 
+         //                 count += 1;
+         //            },
+         //         Err(_) => (),
+         //     };
+               
            	drop(samples);
-            // drop(map);
-            // drop(buffer);
-            // drop(sample);        
-            map.drop();
-            buffer.remove_all_memory();
-            sample.drop();
+             drop(map);
+            drop(buffer);
+            drop(sample);
             
                 Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
@@ -230,7 +227,7 @@ async fn main() {
         "rtsp://10.50.13.239/1/h264major",
         "rtsp://10.50.13.240/1/h264major",
         "rtsp://10.50.13.241/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
+   //     "rtsp://10.50.13.242/1/h264major",
         "rtsp://10.50.13.242/1/h264major",
         "rtsp://10.50.13.243/1/h264major",
         "rtsp://10.50.13.244/1/h264major",
@@ -291,7 +288,27 @@ async fn main() {
     for url in urls {
         rtsp_actor.tell_one(url).expect("tell failed");
     }
-//	let res = rtsp_actor.tell_one("rtsp://10.50.13.237/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.237/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.235/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.239/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.240/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.241/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.242/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.243/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.244/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.245/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.246/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.247/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.248/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.251/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://10.50.13.252/1/h264major").expect("tell failed");
+//rtsp_actor.tell_one("rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1").expect("tell failed");
 //println!("Result: {:?}", res);    
 Bastion::block_until_stopped();
 
