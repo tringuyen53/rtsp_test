@@ -54,7 +54,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=0 drop-on-latency=true ! rtph264depay ! h264parse ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
+         "rtspsrc location={} latency=50 drop-on-latency=true ! rtph264depay ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
