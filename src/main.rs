@@ -54,7 +54,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=50 drop-on-latency=true ! rtph264depay ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
+         "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! jpegenc ! appsink name=sink max-buffers=100 emit-signals=true drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -289,13 +289,13 @@ async fn main() {
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(5));
     let rtsp_actor = Distributor::named("rtsp");
-    for url in urls {
-        rtsp_actor.tell_one(url).expect("tell failed");
-    }
+//    for url in urls {
+//        rtsp_actor.tell_one(url).expect("tell failed");
+//    }
 //rtsp_actor.tell_one("rtsp://10.50.13.231/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
+rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.235/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.239/1/h264major").expect("tell failed");
