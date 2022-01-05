@@ -72,23 +72,6 @@ struct ErrorMessage {
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-  //  println!("appsink: {:?}", appsink);
-
-    // Don't synchronize on the clock, we only want a snapshot asap.
-    // appsink.set_property("sync", false);
-
-    // Tell the appsink what format we want.
-    // This can be set after linking the two objects, because format negotiation between
-    // both elements will happen during pre-rolling of the pipeline.
-     //appsink.set_caps(Some(
-       //  &gst::Caps::builder("video/x-raw")
-         //     .field("framerate", gst::Fraction::new(5, 1))
-   //         .field("stream-format", "byte-stream")
-           //  .build(),
-     //));
-    //println!("Before callback");
-    // let mut got_snapshot = false;
-
     let mut count = 0;
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
@@ -142,17 +125,15 @@ struct ErrorMessage {
 //              match img_result {
 //                  Ok(image) => {
 //                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
-                            //match res {
-                             //    Ok(_) => count += 1,
-                             //    Err(_) => count += 1
-                            // }
 //                          count += 1;
 //                     },
 //                  Err(_) => (),
 //              };
+            let transcode_actor = Distributor::named("transcode");
+            transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
                
            	drop(samples);
-             drop(map);
+            drop(map);
             drop(buffer);
             drop(sample);
             
@@ -251,29 +232,6 @@ async fn main() {
         //"rtsp://10.50.30.118/1/h264major",
         //"rtsp://10.50.31.241/axis-media/media.amp",
     ];
-//     let mut rng = rand::thread_rng();	
-
-//    for url in urls {
-//         let n1: u8 = rng.gen();
-//        tokio::task::spawn(move || {  
-//           match create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)) {
-//                    Ok(r) => r,
-//                    Err(e) => println!("Error! {}", e),
-//                } 
-//            });
-//    }
-// let rt = tokio::runtime::Runtime::new().unwrap();
-//    for url in urls {
-//     // let n1: u8 = rng.gen();
-//   rt.spawn(async move {  
-//         create_pipeline(url.to_owned(), n1).and_then(|pipeline| main_loop(pipeline)).await
-//     });
-// }
-// match create_pipeline("rtsp://10.50.13.236/1/h264major".to_owned(), 1).and_then(|pipeline| main_loop(pipeline)) {
-//                     Ok(r) => r,
-//                     Err(e) => println!("Error! {}", e),
-//                 }
-    // loop {}
 
     Bastion::init();
     Bastion::supervisor(|supervisor| {
@@ -285,9 +243,19 @@ async fn main() {
                 .with_exec(get_rtsp_stream)
         })
     }).map_err(|_| println!("Error"));
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("transcode"))
+                .with_exec(transcode_handler)
+        })
+    }).map_err(|_| println!("Error"));
 
     Bastion::start();
-    std::thread::sleep(std::time::Duration::from_secs(5));
+    std::thread::sleep(std::time::Duration::from_secs(2));
     let rtsp_actor = Distributor::named("rtsp");
 //    for url in urls {
 //        rtsp_actor.tell_one(url).expect("tell failed");
@@ -338,32 +306,15 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
             });
     }
 }
-// fn main() {
-//     // use std::env;
 
-//     // let mut args = env::args();
-
-//     // Parse commandline arguments: input URI, position in seconds, output path
-//     // let _arg0 = args.next().unwrap();
-//     // let uri = args
-//     //     .next()
-//     //     .expect("No input URI provided on the commandline");
-//     // let position = args
-//     //     .next()
-//     //     .expect("No position in second on the commandline");
-//     // let position = position
-//     //     .parse::<u64>()
-//     //     .expect("Failed to parse position as integer");
-//     // let out_path = args
-//     //     .next()
-//     //     .expect("No output path provided on the commandline");
-//     // let uri = "rtsp://10.50.13.231/1/h264major".to_owned();
-//     // let position = 10;
-//     // let out_path = "/img";
-//     // let out_path = std::path::PathBuf::from(out_path);
-
-//     match create_pipeline(uri).and_then(|pipeline| main_loop(pipeline)) {
-//         Ok(r) => r,
-//         Err(e) => eprintln!("Error! {}", e),
-//     }
-// }
+async fn transcode_handler(ctx: BastionContext) -> Result<(), ()> {
+    loop {
+        MessageHandler::new(ctx.recv().await?)
+            .on_tell(|message: Vec<u8>, _| {
+                println!("Receive frame from rtsp: {}", message.len());
+            })
+            .on_fallback(|unknown, _sender_addr| {
+                println!("unknown");
+            });
+    }
+}
