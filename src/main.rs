@@ -24,7 +24,7 @@ use derive_more::{Display, Error};
 use image::{DynamicImage, ImageFormat};
 use bastion::distributor::*;
 use bastion::prelude::*;
-
+mod throttle;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -129,14 +129,18 @@ struct ErrorMessage {
 //                     },
 //                  Err(_) => (),
 //              };
-            let transcode_actor = Distributor::named("transcode");
-            transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
-               
-           	drop(samples);
-            drop(map);
-            drop(buffer);
-            drop(sample);
-            
+            let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+            let result = throttle.accept();
+            if result.is_ok() {
+                    println!("Throttle START!!");
+                    let transcode_actor = Distributor::named("transcode");
+                    transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                    
+                    drop(samples);
+                    drop(map);
+                    drop(buffer);
+                    drop(sample);
+                }
                 Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
             })
