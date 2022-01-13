@@ -25,6 +25,7 @@ use image::{DynamicImage, ImageFormat};
 use bastion::distributor::*;
 use bastion::prelude::*;
 mod throttle;
+use throttle::Throttle;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
