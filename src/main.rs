@@ -55,7 +55,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+         "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! videorate ! video/x-raw,framerate=3/1 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -116,7 +116,7 @@ struct ErrorMessage {
 
                     gst::FlowError::Error
                 })?;
-
+                println!(samples);
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
@@ -130,9 +130,9 @@ struct ErrorMessage {
 //                     },
 //                  Err(_) => (),
 //              };
-            let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
-            let result = throttle.accept();
-            if result.is_ok() {
+            // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+            // let result = throttle.accept();
+            // if result.is_ok() {
                     println!("Throttle START!!");
                     let transcode_actor = Distributor::named("transcode");
                     transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
@@ -141,7 +141,7 @@ struct ErrorMessage {
                     drop(map);
                     drop(buffer);
                     drop(sample);
-                }
+                // }
                 Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
             })
