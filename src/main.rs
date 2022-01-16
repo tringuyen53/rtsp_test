@@ -55,7 +55,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! videorate ! video/x-raw,framerate=3/1 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+         "rtspsrc location={} ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -116,7 +116,7 @@ struct ErrorMessage {
 
                     gst::FlowError::Error
                 })?;
-                println!(samples);
+                println!("{:?}",samples);
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
@@ -294,8 +294,8 @@ let rtsp2_actor = Distributor::named("rtsp-2");
 //rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.251/1/h264major").expect("tell failed");
-rtsp_actor.tell_one("rtsp://10.50.13.230/1/h264major").expect("tell failed");
-rtsp2_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
+rtsp_actor.tell_one("rtsp://10.50.13.252/1/h264major").expect("tell failed");
+//rtsp2_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1").expect("tell failed");
 //println!("Result: {:?}", res);    
 Bastion::block_until_stopped();
