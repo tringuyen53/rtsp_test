@@ -27,7 +27,7 @@ use bastion::prelude::*;
 mod throttle;
 use throttle::Throttle;
 use tokio::net::TcpStream;
-use std::error::Error;
+use std::error::Error as OtherError;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -305,13 +305,14 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
 // }
 
 #[tokio::main]
-async fn main() {
-    let mut stream = TcpStream::connect("rtsp://10.50.13.252/1/h264major").await?;
-    let mut data: &[u8];
+async fn main() -> Result<(), Box<dyn OtherError>> {
+    let mut stream = TcpStream::connect("rtsp://10.50.13.252:554/1/h264major").await?;
+    let mut data = Vec::new();
     let n = stream.peek(&mut data).await?;
-    let mut samples = data.to_vec();
+    //let mut samples = data.to_vec();
     println!("Lenght: {}", n);
-    println!("Samples: {:?}", samples);
+    println!("Samples: {:?}", data);
+	Ok(())
 }
 
 async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
