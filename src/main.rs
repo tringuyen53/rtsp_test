@@ -28,6 +28,8 @@ mod throttle;
 use throttle::Throttle;
 use tokio::net::TcpStream;
 use std::error::Error as OtherError;
+use nats::{self, asynk::Connection};
+use async_std::task;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -44,7 +46,17 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
+const TOPIC: &str = "rtsp_test";
+const URL: &str = "rtsp://10.50.13.252/1/h264major";
+
+async fn connect_nats() -> Connection {
+    nats::asynk::connect("nats://demo.nats.io:4222")
+        .await
+        .unwrap()
+}
+
  fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
+    let client = task::block_on(connect_nats());
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -118,10 +130,10 @@ struct ErrorMessage {
 
                     gst::FlowError::Error
                 })?;
-                println!("{:?}",samples);
+                // println!("{:?}",samples);
                  //SAVE IMAGE
-                 let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
-                 file.write_all(samples);
+                //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
+                //  file.write_all(samples);
 
 //              let img_result = 
 //                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
@@ -136,10 +148,10 @@ struct ErrorMessage {
             // let result = throttle.accept();
             // if result.is_ok() {
                     // println!("Throttle START!!");
-                    count += 1;
-                    let transcode_actor = Distributor::named("transcode");
-                    transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
-                    
+                    // count += 1;
+                    // let transcode_actor = Distributor::named("transcode");
+                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                    let _ = client.publish(TOPIC, frame_buffer.to_vec());
                     drop(samples);
                     drop(map);
                     drop(buffer);
