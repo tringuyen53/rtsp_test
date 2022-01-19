@@ -151,7 +151,7 @@ async fn connect_nats() -> Connection {
                     // count += 1;
                     // let transcode_actor = Distributor::named("transcode");
                     // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
-                    let _ = client.publish(TOPIC, frame_buffer.to_vec());
+                    let _ = client.publish(TOPIC, samples.to_vec());
                     drop(samples);
                     drop(map);
                     drop(buffer);
