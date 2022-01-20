@@ -412,6 +412,7 @@ async fn main() {
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(2));
     let rtsp_actor = Distributor::named("rtsp");
+    let rtsp1_actor = Distributor::named("rtsp-1");
     let rtsp2_actor = Distributor::named("rtsp-2");
     let rtsp3_actor = Distributor::named("rtsp-3");
     let rtsp4_actor = Distributor::named("rtsp-4");
