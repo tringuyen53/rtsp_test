@@ -44,7 +44,7 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct RTPMessage {
     pub url: String,
     pub client: Connection,
