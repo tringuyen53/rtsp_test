@@ -231,7 +231,7 @@ async fn main() {
     let cam_ip = vec![36, 231, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 248, 249, 252, 253, 254];
 
     for ip in cam_ip {
-        let name = format!("rtsp-{}", cam_ip);
+        let name = format!("rtsp-{}", ip);
         Bastion::supervisor(|supervisor| {
             supervisor.children(|children| {
                 // Iniit staff
