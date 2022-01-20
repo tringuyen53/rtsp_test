@@ -55,7 +55,7 @@ struct ErrorMessage {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+         "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -116,7 +116,7 @@ struct ErrorMessage {
 
                     gst::FlowError::Error
                 })?;
-                println!("{:?}",samples);
+                // println!("{:?}",samples);
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
@@ -133,9 +133,9 @@ struct ErrorMessage {
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
-                    println!("Throttle START!!");
-                    let transcode_actor = Distributor::named("transcode");
-                    transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                    // println!("Throttle START!!");
+                    // let transcode_actor = Distributor::named("transcode");
+                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
                     
                     drop(samples);
                     drop(map);
@@ -248,7 +248,18 @@ async fn main() {
                 .with_exec(get_rtsp_stream)
         })
     }).map_err(|_| println!("Error"));
-Bastion::supervisor(|supervisor| {
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-1"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
         supervisor.children(|children| {
             // Iniit staff
             // Staff (5 members) - Going to organize the event
@@ -256,7 +267,137 @@ Bastion::supervisor(|supervisor| {
                 .with_distributor(Distributor::named("rtsp-2"))
                 .with_exec(get_rtsp_stream)
         })
-    }).map_err(|_| println!("Error"));   
+    }).map_err(|_| println!("Error")); 
+    
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-3"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-4"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-5"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-6"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-7"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-8"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-9"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-10"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-11"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-12"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-13"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-14"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
+
+    Bastion::supervisor(|supervisor| {
+        supervisor.children(|children| {
+            // Iniit staff
+            // Staff (5 members) - Going to organize the event
+            children
+                .with_distributor(Distributor::named("rtsp-15"))
+                .with_exec(get_rtsp_stream)
+        })
+    }).map_err(|_| println!("Error"));
  std::thread::sleep(std::time::Duration::from_secs(1));
     Bastion::supervisor(|supervisor| {
         supervisor.children(|children| {
@@ -271,30 +412,44 @@ Bastion::supervisor(|supervisor| {
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(2));
     let rtsp_actor = Distributor::named("rtsp");
-let rtsp2_actor = Distributor::named("rtsp-2");
+    let rtsp2_actor = Distributor::named("rtsp-2");
+    let rtsp3_actor = Distributor::named("rtsp-3");
+    let rtsp4_actor = Distributor::named("rtsp-4");
+    let rtsp5_actor = Distributor::named("rtsp-5");
+    let rtsp6_actor = Distributor::named("rtsp-6");
+    let rtsp7_actor = Distributor::named("rtsp-7");
+    let rtsp8_actor = Distributor::named("rtsp-8");
+    let rtsp9_actor = Distributor::named("rtsp-9");
+    let rtsp10_actor = Distributor::named("rtsp-10");
+    let rtsp11_actor = Distributor::named("rtsp-11");
+    let rtsp12_actor = Distributor::named("rtsp-12");
+    let rtsp13_actor = Distributor::named("rtsp-13");
+    let rtsp14_actor = Distributor::named("rtsp-14");
+    let rtsp15_actor = Distributor::named("rtsp-15");
 //    for url in urls {
 //        rtsp_actor.tell_one(url).expect("tell failed");
 //    }
-//rtsp_actor.tell_one("rtsp://10.50.13.231/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.235/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.239/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.240/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.241/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.242/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.243/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.244/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.245/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.246/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.247/1/h264major").expect("tell failed");
+rtsp_actor.tell_one("rtsp://10.50.13.231/1/h264major").expect("tell failed");
+rtsp1_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
+rtsp2_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
+rtsp3_actor.tell_one("rtsp://10.50.13.235/1/h264major").expect("tell failed");
+rtsp4_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
+rtsp5_actor.tell_one("rtsp://10.50.13.237/1/h264major").expect("tell failed");
+rtsp6_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
+rtsp7_actor.tell_one("rtsp://10.50.13.239/1/h264major").expect("tell failed");
+rtsp8_actor.tell_one("rtsp://10.50.13.240/1/h264major").expect("tell failed");
+rtsp9_actor.tell_one("rtsp://10.50.13.241/1/h264major").expect("tell failed");
+rtsp10_actor.tell_one("rtsp://10.50.13.242/1/h264major").expect("tell failed");
+rtsp11_actor.tell_one("rtsp://10.50.13.243/1/h264major").expect("tell failed");
+rtsp12_actor.tell_one("rtsp://10.50.13.244/1/h264major").expect("tell failed");
+rtsp13_actor.tell_one("rtsp://10.50.13.245/1/h264major").expect("tell failed");
+rtsp14_actor.tell_one("rtsp://10.50.13.246/1/h264major").expect("tell failed");
+rtsp15_actor.tell_one("rtsp://10.50.13.247/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.248/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.251/1/h264major").expect("tell failed");
-rtsp_actor.tell_one("rtsp://10.50.13.252/1/h264major").expect("tell failed");
+// rtsp_actor.tell_one("rtsp://10.50.13.252/1/h264major").expect("tell failed");
 //rtsp2_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1").expect("tell failed");
 //println!("Result: {:?}", res);    
