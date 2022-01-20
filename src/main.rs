@@ -290,7 +290,7 @@ async fn main() {
         let name = format!("rtsp-{}", ip);
         let rtsp_actor = Distributor::named(name);
         let msg = RTPMessage {
-            url: urls[index],
+            url: urls[index].to_owned(),
             client: client.clone(),
         };
         rtsp_actor.tell_one(msg).expect("tell failed");
