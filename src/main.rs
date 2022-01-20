@@ -48,6 +48,7 @@ struct ErrorMessage {
 pub struct RTPMessage {
     pub url: String,
     pub client: Connection,
+    pub id: String,
 }
 
 const NATS_URL: &str = "tls://dev.lexray.com:60064";
@@ -59,7 +60,7 @@ async fn connect_nats() -> Connection {
         .unwrap()
 }
 
- fn create_pipeline(uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -133,6 +134,8 @@ async fn connect_nats() -> Connection {
 
                     gst::FlowError::Error
                 })?;
+
+                task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
 //                 println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
@@ -292,6 +295,7 @@ async fn main() {
         let msg = RTPMessage {
             url: urls[index].to_owned(),
             client: client.clone(),
+            id: ip.to_string(),
         };
         rtsp_actor.tell_one(msg).expect("tell failed");
         index += 1;
@@ -355,7 +359,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //println!("spawn new actor: {:?} - {:?}", message, n1);
 let client = task::block_on(connect_nats());
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.url, message.client).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url, message.client).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
