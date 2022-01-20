@@ -26,6 +26,8 @@ use bastion::distributor::*;
 use bastion::prelude::*;
 mod throttle;
 use throttle::Throttle;
+use async_std::task;
+use nats::{self, asynk::Connection};
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -42,7 +44,22 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
- fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
+#[derive(Debug, Clone, Default)]
+pub struct RTPMessage {
+    pub url: String,
+    pub client: Connection,
+}
+
+const NATS_URL: &str = "tls://dev.lexray.com:60064";
+async fn connect_nats() -> Connection {
+    println!("Connecting to NATS..");
+    nats::asynk::Options::with_credentials("hub.creds")
+        .connect(NATS_URL)
+        .await
+        .unwrap()
+}
+
+ fn create_pipeline(uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -195,25 +212,25 @@ async fn main() {
     
 
     let urls = [
-        "rtsp://10.50.29.36/1/h264major",
-        "rtsp://10.50.13.231/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
-        "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.238/1/h264major",
-        "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
-        "rtsp://10.50.13.241/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
-        "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.248/1/h264major",
-        "rtsp://10.50.13.249/1/h264major",
-        "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.29.36/1/h264major",
+        // "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.234/1/h264major",
+        // "rtsp://10.50.13.235/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.238/1/h264major",
+        // "rtsp://10.50.13.239/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
+        // "rtsp://10.50.13.241/1/h264major",
+        // "rtsp://10.50.13.242/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.244/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.248/1/h264major",
+        // "rtsp://10.50.13.249/1/h264major",
+        // "rtsp://10.50.13.252/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
         "rtsp://10.50.13.254/1/h264major",
     ];
 
@@ -228,7 +245,28 @@ async fn main() {
         })
     }).map_err(|_| println!("Error"));
 
-    let cam_ip = vec![36, 231, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 248, 249, 252, 253, 254];
+    let cam_ip = vec![
+        // 36, 
+        // 231, 
+        // 233, 
+        // 234, 
+        // 235, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
+        // 240,
+        // 241,
+        // 242, 
+        // 243, 
+        // 244, 
+        // 245, 
+        // 248, 
+        // 249, 
+        // 252, 
+        // 253, 
+        254,
+    ];
 
     for ip in &cam_ip {
         let name = format!("rtsp-{}", ip);
@@ -245,11 +283,17 @@ async fn main() {
 
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(2));
+
     let mut index = 0;
+    let client = task::block_on(connect_nats());
     for ip in &cam_ip {
         let name = format!("rtsp-{}", ip);
         let rtsp_actor = Distributor::named(name);
-        rtsp_actor.tell_one(urls[index]).expect("tell failed");
+        let msg = RTPMessage {
+            url: urls[index],
+            client: client.clone(),
+        };
+        rtsp_actor.tell_one(msg).expect("tell failed");
         index += 1;
     }
 
@@ -305,12 +349,13 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     //let mut rng = rand::thread_rng();
     loop {
         MessageHandler::new(ctx.recv().await?)
-            .on_tell(|message: &str, _| {
+            .on_tell(|message: RTPMessage, _| {
 //let mut rng = rand::thread_rng();                
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
+let client = task::block_on(connect_nats());
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.to_owned(), 1).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.url, message.client).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
