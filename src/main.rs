@@ -116,7 +116,7 @@ struct ErrorMessage {
 
                     gst::FlowError::Error
                 })?;
-                // println!("{:?}",samples);
+//                 println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
@@ -169,7 +169,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
             MessageView::Eos(..) => break,
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
-                println!("Error: {:?}",err.error());
+                println!("Error: {:?}", err.error());
                 return Err(ErrorMessage {
                     src: msg
                         .src()
@@ -444,8 +444,8 @@ rtsp10_actor.tell_one("rtsp://10.50.13.242/1/h264major").expect("tell failed");
 rtsp11_actor.tell_one("rtsp://10.50.13.243/1/h264major").expect("tell failed");
 rtsp12_actor.tell_one("rtsp://10.50.13.244/1/h264major").expect("tell failed");
 rtsp13_actor.tell_one("rtsp://10.50.13.245/1/h264major").expect("tell failed");
-rtsp14_actor.tell_one("rtsp://10.50.13.246/1/h264major").expect("tell failed");
-rtsp15_actor.tell_one("rtsp://10.50.13.247/1/h264major").expect("tell failed");
+rtsp14_actor.tell_one("rtsp://10.50.13.248/1/h264major").expect("tell failed");
+rtsp15_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.248/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
