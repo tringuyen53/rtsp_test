@@ -247,7 +247,7 @@ async fn main() {
     std::thread::sleep(std::time::Duration::from_secs(2));
     let index = 0;
     for ip in cam_ip {
-        let name = format!("rtsp-{}", cam_ip);
+        let name = format!("rtsp-{}", ip);
         let rtsp_actor = Distributor::named(name);
         rtsp_actor.tell_one(urls[index]).expect("tell failed");
         index += 1;
