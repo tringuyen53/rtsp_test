@@ -153,17 +153,15 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 })?;
 
                 let mut writer = vec![];
-                {
-                    let w = Cursor::new(&mut writer);
-                    let mut h264writer = H264Writer::new(w);
+                let w = Cursor::new(&mut writer);
+                let mut h264writer = H264Writer::new(w);
 
-                    let mut samples = samples.clone();
+                let mut samples = samples.clone();
 
-                    let packet = Packet::unmarshal(&mut samples).unwrap();
+                let packet = Packet::unmarshal(&mut samples).unwrap();
 
-                    h264writer.write_rtp(&packet).unwrap();
-                    h264writer.close().unwrap();
-                }
+                h264writer.write_rtp(&packet).unwrap();
+                h264writer.close().unwrap();
 
                 let is_key_frame = is_key_frame(&packet.payload);
 
