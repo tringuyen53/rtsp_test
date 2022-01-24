@@ -33,6 +33,7 @@ use throttle::Throttle;
 use tokio::net::TcpStream;
 use webrtc_media::io::h264_writer::H264Writer;
 use webrtc_media::io::Writer;
+use webrtc_util::Unmarshal;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -47,6 +48,21 @@ struct ErrorMessage {
     error: String,
     debug: Option<String>,
     source: glib::Error,
+}
+
+const NALU_TTYPE_STAP_A: u32 = 24;
+const NALU_TTYPE_SPS: u32 = 7;
+const NALU_TYPE_BITMASK: u32 = 0x1F;
+
+fn is_key_frame(data: &[u8]) -> bool {
+    if data.len() < 4 {
+        false
+    } else {
+        let word = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
+        let nalu_type = (word >> 24) & NALU_TYPE_BITMASK;
+        (nalu_type == NALU_TTYPE_STAP_A && (word & NALU_TYPE_BITMASK) == NALU_TTYPE_SPS)
+            || (nalu_type == NALU_TTYPE_SPS)
+    }
 }
 
 const TOPIC: &str = "rtsp_test";
@@ -91,6 +107,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         .expect("Sink element is expected to be an appsink!");
 
     let mut count = 0;
+
+    let mut i = 1;
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -138,14 +156,23 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     let w = Cursor::new(&mut writer);
                     let mut h264writer = H264Writer::new(w);
 
-                    let packet = rtp::packet::Packet {
-                        payload: Bytes::from(samples.to_vec()),
-                        ..Default::default()
-                    };
+                    let mut samples = samples.clone();
+
+                    let packet = Packet::unmarshal(&mut samples).unwrap();
 
                     h264writer.write_rtp(&packet).unwrap();
                     h264writer.close().unwrap();
                 }
+
+                let is_key_frame = is_key_frame(&packet.payload);
+
+                if is_key_frame {
+                    println!("KEY FRAME");
+                } else {
+                    println!("NO KEY: {}", i);
+                }
+
+                i = i + 1;
 
                 println!("writer: {:?}", writer);
                 // println!("{:?}",samples);
