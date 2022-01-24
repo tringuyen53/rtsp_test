@@ -167,11 +167,13 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 if is_key_frame {
                     println!("KEY FRAME");
+
+                    i = 0;
                 } else {
                     println!("NO KEY: {}", i);
-                }
 
-                i = i + 1;
+                    i = i + 1;
+                }
 
                 println!("writer: {:?}", writer);
                 // println!("{:?}",samples);
