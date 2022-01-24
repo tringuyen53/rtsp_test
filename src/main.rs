@@ -69,7 +69,7 @@ async fn connect_nats() -> Connection {
   //      uri
 //    ))?
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+         "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -151,7 +151,7 @@ async fn connect_nats() -> Connection {
                     // count += 1;
                     // let transcode_actor = Distributor::named("transcode");
                     // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
-                    let _ = client.publish(TOPIC, samples.to_vec());
+                    // let _ = client.publish(TOPIC, samples.to_vec());
                     drop(samples);
                     drop(map);
                     drop(buffer);
