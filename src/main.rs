@@ -133,8 +133,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     gst::FlowError::Error
                 })?;
 
-                println!("sample: {:?}", samples);
-
                 let mut writer = vec![];
                 {
                     let w = Cursor::new(&mut writer);
