@@ -22,7 +22,7 @@ use gst::prelude::*;
 use image::{DynamicImage, ImageFormat};
 use rand::Rng;
 use std::fs;
-use std::io::Write; // bring trait into scope
+use std::io::{Cursor, Write}; // bring trait into scope
 use tokio::runtime::Handle;
 mod throttle;
 use async_std::task;

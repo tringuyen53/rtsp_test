@@ -26,6 +26,7 @@ async-std = "*"
 # ffav = "*"
 webrtc-media = "*"
 bytes = "*"
+rtp = "*"
 
 # [dependencies.ffav]
 # git = "https://github.com/vaxpl/ffav-rs.git"
