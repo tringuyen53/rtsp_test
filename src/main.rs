@@ -213,6 +213,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         }
                         Err(_) => {}
                     };
+                } else {
+                    println!("ODD NUMBER");
                 }
 
                 i = i + 1;
