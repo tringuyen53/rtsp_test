@@ -166,11 +166,11 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let mut h264writer = H264Writer::new(f_w);
 
-                let pkt = Bytes::from(samples);
+                // let pkt = Bytes::from_static(samples);
 
-                let buf = &mut pkt.clone();
+                // let buf = &mut pkt.clone();
 
-                let packet = Packet::unmarshal(buf).unwrap();
+                let packet = Packet::unmarshal(&mut samples).unwrap();
 
                 h264writer.write_rtp(&packet).unwrap();
                 h264writer.close().unwrap();
@@ -219,9 +219,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 // let transcode_actor = Distributor::named("transcode");
                 // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");
                 // let _ = client.publish(TOPIC, samples.to_vec());
-
-                drop(buf);
-                drop(pkt);
                 drop(samples);
                 drop(map);
                 drop(buffer);
