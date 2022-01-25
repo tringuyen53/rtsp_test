@@ -116,7 +116,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     let count = Arc::new(Mutex::new(0));
     let count_2 = count.clone();
 
-    let mut i = 1;
+    let mut i = 0;
 
     let mut f_w = File::create("test.h264").unwrap();
     let mut h264writer = H264Writer::new(f_w);
@@ -193,27 +193,28 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     )
                     .unwrap();
 
-                    i = i + 1;
-                    println!("Count {} int Sucess time: {:?}", i, naive);
+                    // i = i + 1;
+                    // println!("Count {} int Sucess time: {:?}", i, naive);
 
                     // println!("NEXT INDEX FRAME: {:?}", now - time);
 
                     // time = now;
                 }
 
-                // if i % 2 == 0 {
-                match h264writer.write_rtp(&packet) {
-                    Ok(_) => {
-                        let timestamp =
-                            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                                Ok(n) => n.as_nanos() as i64,
-                                Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-                            };
-                    }
-                    Err(_) => {}
-                };
+                if i % 2 == 0 || is_key_frame {
+                    match h264writer.write_rtp(&packet) {
+                        Ok(_) => {
+                            let timestamp =
+                                match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                                    Ok(n) => n.as_nanos() as i64,
+                                    Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                                };
+                        }
+                        Err(_) => {}
+                    };
+                }
 
-                // }
+                i = i + 1;
                 // else {
                 //     // println!("NO KEY: {}", i);
 
