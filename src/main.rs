@@ -161,7 +161,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // let mut writer = vec![];
                 // let w = Cursor::new(&mut writer);
-                let mut f_w = File::create("test.h264").unwrap();
+                let mut f_w = File::open("test.h264").unwrap();
                 let mut h264writer = H264Writer::new(f_w);
 
                 let mut samples = samples.clone();
