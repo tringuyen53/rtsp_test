@@ -182,7 +182,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 if is_key_frame {
                     let now = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                        Ok(n) => n.as_millis(),
+                        Ok(n) => n.as_nanos(),
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
@@ -198,7 +198,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                     // println!("NEXT INDEX FRAME: {:?}", now - time);
 
-                    time = now;
+                    // time = now;
                 }
 
                 // if i % 2 == 0 {
@@ -213,7 +213,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     Err(_) => {}
                 };
 
-                println!("COUNT: {:?}", *count.lock().unwrap());
                 // }
                 // else {
                 //     // println!("NO KEY: {}", i);
