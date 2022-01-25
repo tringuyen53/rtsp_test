@@ -30,6 +30,7 @@ use bytes::Bytes;
 use nats::{self, asynk::Connection};
 use rtp::packet::Packet;
 use std::error::Error as OtherError;
+use std::time::{Duration, SystemTime};
 use throttle::Throttle;
 use tokio::net::TcpStream;
 use webrtc_media::io::h264_writer::H264Writer;
@@ -110,6 +111,11 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     let mut count = 0;
 
     let mut i = 1;
+
+    let time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => n.as_nanos(),
+        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+    };
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -168,9 +174,18 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 if is_key_frame {
                     println!("KEY FRAME");
 
+                    let now = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                        Ok(n) => n.as_nanos(),
+                        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                    };
+
+                    println!("NEXT FRAME: {:?}", (now - time) / 1_000_000u64);
+
+                    time = now;
+
                     i = 0;
                 } else {
-                    println!("NO KEY: {}", i);
+                    // println!("NO KEY: {}", i);
 
                     i = i + 1;
                 }
