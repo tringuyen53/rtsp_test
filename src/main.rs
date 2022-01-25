@@ -179,7 +179,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
-                    println!("NEXT FRAME: {:?}", (now - time) / 1_000_000u64);
+                    println!("NEXT FRAME: {:?}", (now - time) / 1_000_000u128);
 
                     time = now;
 
