@@ -166,11 +166,11 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let mut h264writer = H264Writer::new(f_w);
 
-                let pkt = Bytes::from(samples);
+                // let pkt = Bytes::from(samples);
 
-                let buf = &mut pkt.clone();
+                // let buf = &mut pkt.clone();
 
-                let packet = Packet::unmarshal(buf).unwrap();
+                let packet = Packet::unmarshal(&mut Bytes::from(samples)).unwrap();
 
                 h264writer.write_rtp(&packet).unwrap();
                 h264writer.close().unwrap();
