@@ -182,13 +182,13 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     println!("NEXT INDEX FRAME: {:?}", now - time);
 
                     time = now;
-
-                    i = i + 1;
                 }
 
-                // if i % 2 == 0 {
-                h264writer.write_rtp(&packet).unwrap();
-                // }
+                i = i + 1;
+
+                if i % 2 == 0 || is_key_frame {
+                    h264writer.write_rtp(&packet).unwrap();
+                }
                 // else {
                 //     // println!("NO KEY: {}", i);
 
