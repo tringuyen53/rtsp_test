@@ -29,6 +29,7 @@ bytes = "*"
 rtp = "*"
 webrtc-util = "*"
 job_scheduler = "1.2.1"
+chrono = "*"
 
 # [dependencies.ffav]
 # git = "https://github.com/vaxpl/ffav-rs.git"

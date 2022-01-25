@@ -1641,6 +1641,7 @@ dependencies = [
  "bastion",
  "byte-slice-cast",
  "bytes",
+ "chrono",
  "derive_more",
  "gstreamer",
  "gstreamer-app",

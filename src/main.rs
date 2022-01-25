@@ -28,6 +28,7 @@ mod throttle;
 use async_std::task;
 use bastion::prelude::*;
 use bytes::Bytes;
+use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use job_scheduler::{Job, JobScheduler};
 use nats::{self, asynk::Connection};
 use rtp::packet::Packet;
@@ -125,7 +126,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
 
-    blocking!(scheduler(count_2.clone()));
+    // blocking!(scheduler(count_2.clone()));
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -185,16 +186,27 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
-                    println!("NEXT INDEX FRAME: {:?}", now - time);
+                    // println!("NEXT INDEX FRAME: {:?}", now - time);
 
                     time = now;
-
-                    i = i + 1;
                 }
 
                 // if i % 2 == 0 {
                 match h264writer.write_rtp(&packet) {
-                    Ok(_) => *count.lock().unwrap() = *count.lock().unwrap() + 1,
+                    Ok(_) => {
+                        let timestamp =
+                            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                                Ok(n) => n.as_nanos() as i64,
+                                Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                            };
+                        let naive = NaiveDateTime::from_timestamp_opt(
+                            timestamp,
+                            (timestamp % 1000) as u32 * 1_000_000,
+                        )
+                        .unwrap();
+                        i = i + 1;
+                        println!("Count {} int Sucess time: {:?}", i, naive);
+                    }
                     Err(_) => {}
                 };
 
@@ -435,6 +447,6 @@ fn scheduler(count: Arc<Mutex<i32>>) {
     loop {
         sched.tick();
 
-        std::thread::sleep(Duration::from_secs(1));
+        std::thread::sleep(Duration::from_secs(30));
     }
 }
