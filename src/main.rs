@@ -220,6 +220,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");
                 // let _ = client.publish(TOPIC, samples.to_vec());
 
+                drop(buf);
                 drop(pkt);
                 drop(samples);
                 drop(map);
