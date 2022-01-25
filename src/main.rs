@@ -166,6 +166,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let mut h264writer = H264Writer::new(f_w);
 
+                let mut samples = samples.clone();
+
                 // let pkt = Bytes::from_static(samples);
 
                 // let buf = &mut pkt.clone();
