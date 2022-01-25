@@ -113,6 +113,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         .expect("Sink element is expected to be an appsink!");
 
     let count = Arc::new(Mutex::new(0));
+    let count_2 = count.clone()
 
     let mut i = 1;
 
@@ -124,7 +125,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
 
-    blocking!(scheduler(count.clone()));
+    blocking!(scheduler(count_2.clone()));
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -132,7 +133,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
-                let count = count.clone();
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
                 //                println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
