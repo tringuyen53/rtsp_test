@@ -202,6 +202,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 }
 
                 if i % 2 == 0 || is_key_frame {
+                    println!("EVEN NUMBER");
                     match h264writer.write_rtp(&packet) {
                         Ok(_) => {
                             let timestamp =
