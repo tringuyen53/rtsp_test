@@ -112,7 +112,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
     let mut i = 1;
 
-    let time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+    let mut time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => n.as_nanos(),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
