@@ -174,14 +174,12 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 let is_key_frame = is_key_frame(&packet.payload);
 
                 if is_key_frame {
-                    println!("KEY FRAME");
-
                     let now = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
                         Ok(n) => n.as_millis(),
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
-                    println!("NEXT FRAME: {:?}", now - time);
+                    println!("NEXT INDEX FRAME: {:?}", now - time);
 
                     time = now;
 
