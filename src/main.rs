@@ -168,9 +168,14 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let mut samples = samples.clone();
 
-                let pkt = Packet::default();
+                // let packet = rtp::packet::Packet {
+                //     payload: Bytes::from(payload),
+                //     ..Default::default()
+                // };
 
-                let packet = pkt.unmarshal(&mut samples).unwrap();
+                let mut pkt = Bytes::from(samples);
+
+                let packet = Packet::unmarshal(&mut pkt).unwrap();
 
                 h264writer.write_rtp(&packet).unwrap();
                 h264writer.close().unwrap();
