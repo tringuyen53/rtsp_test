@@ -128,7 +128,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
                 //                println!("Sample: {:?}", sample);
-                let buffer = sample.buffer().ok_or_else(|| {
+                let buffer = *sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
                         gst::ResourceError::Failed,
@@ -137,8 +137,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                     gst::FlowError::Error
                 })?;
-
-                let buffer = *buffer.clone();
 
                 //        println!("Buffer {:?}", buffer);
 
