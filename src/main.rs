@@ -117,7 +117,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     let mut h264writer = H264Writer::new(f_w);
 
     let mut time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => n.as_nanos(),
+        Ok(n) => n.as_millis(),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
     // Getting data out of the appsink is done by setting callbacks on it.
@@ -178,11 +178,11 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     println!("KEY FRAME");
 
                     let now = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                        Ok(n) => n.as_nanos(),
+                        Ok(n) => n.as_millis(),
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
-                    println!("NEXT FRAME: {:?}", (now - time) / 1_000_000u128);
+                    println!("NEXT FRAME: {:?}", now - time);
 
                     time = now;
 
@@ -356,25 +356,6 @@ async fn main() {
     //    for url in urls {
     //        rtsp_actor.tell_one(url).expect("tell failed");
     //    }
-    //rtsp_actor.tell_one("rtsp://10.50.13.231/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.235/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.239/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.240/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.241/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.242/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.243/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.244/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.245/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.246/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.247/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.248/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
-    //rtsp_actor.tell_one("rtsp://10.50.13.251/1/h264major").expect("tell failed");
     rtsp_actor
         .tell_one("rtsp://10.50.13.252/1/h264major")
         .expect("tell failed");
