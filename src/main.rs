@@ -435,6 +435,6 @@ fn scheduler(count: Arc<Mutex<i32>>) {
     loop {
         sched.tick();
 
-        // std::thread::sleep(Duration::from_secs(30));
+        std::thread::sleep(Duration::from_secs(1));
     }
 }
