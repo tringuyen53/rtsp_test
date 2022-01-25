@@ -114,7 +114,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     let mut i = 1;
 
     let mut f_w = File::create("test.h264").unwrap();
-    let mut h264writer = H264Writer::new(f_w);
 
     let mut time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => n.as_nanos(),
@@ -164,6 +163,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // let mut writer = vec![];
                 // let w = Cursor::new(&mut writer);
+
+                let mut h264writer = H264Writer::new(f_w);
 
                 let mut samples = samples.clone();
 
