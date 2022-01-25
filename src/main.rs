@@ -186,6 +186,16 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
+                    let timestamp = timestamp / 1_000_000_000i64;
+                    let naive = NaiveDateTime::from_timestamp_opt(
+                        timestamp,
+                        (timestamp % 1000) as u32 * 1_000_000,
+                    )
+                    .unwrap();
+
+                    i = i + 1;
+                    println!("Count {} int Sucess time: {:?}", i, naive);
+
                     // println!("NEXT INDEX FRAME: {:?}", now - time);
 
                     time = now;
@@ -199,14 +209,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                                 Ok(n) => n.as_nanos() as i64,
                                 Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                             };
-                        let timestamp = timestamp / 1_000_000_000i64;
-                        let naive = NaiveDateTime::from_timestamp_opt(
-                            timestamp,
-                            (timestamp % 1000) as u32 * 1_000_000,
-                        )
-                        .unwrap();
-                        i = i + 1;
-                        println!("Count {} int Sucess time: {:?}", i, naive);
                     }
                     Err(_) => {}
                 };
