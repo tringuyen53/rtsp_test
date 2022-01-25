@@ -173,7 +173,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 //     ..Default::default()
                 // };
 
-                let pkt = Bytes::from(samples);
+                let pkt = Bytes::from_static(samples);
 
                 let buf = &mut pkt.clone();
 
