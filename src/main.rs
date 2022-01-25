@@ -190,7 +190,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     i = i + 1;
                 }
 
-                println!("writer: {:?}", writer);
+                // println!("writer: {:?}", writer);
                 // println!("{:?}",samples);
                 //SAVE IMAGE
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
