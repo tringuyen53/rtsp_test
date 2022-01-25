@@ -183,14 +183,17 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                     time = now;
 
-                    i = 0;
-                } else {
-                    // println!("NO KEY: {}", i);
+                    if i % 2 != 0 {
+                        h264writer.write_rtp(&packet).unwrap();
+                    }
 
                     i = i + 1;
                 }
+                // else {
+                //     // println!("NO KEY: {}", i);
 
-                h264writer.write_rtp(&packet).unwrap();
+                //     i = i + 1;
+                // }
 
                 // println!("writer: {:?}", writer);
                 // println!("{:?}",samples);
