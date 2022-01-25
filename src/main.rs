@@ -202,7 +202,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         let timestamp = timestamp / 1_000_000_000i64;
                         let naive = NaiveDateTime::from_timestamp_opt(
                             timestamp,
-                            (timestamp % 1000) as u32 * 1_000_000_000,
+                            (timestamp % 1_000_000_000) as u32 * 1_000_000,
                         )
                         .unwrap();
                         i = i + 1;
