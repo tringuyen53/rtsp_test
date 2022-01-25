@@ -169,7 +169,6 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let packet = Packet::unmarshal(&mut samples).unwrap();
 
-                h264writer.write_rtp(&packet).unwrap();
                 // h264writer.close().unwrap();
 
                 let is_key_frame = is_key_frame(&packet.payload);
@@ -192,6 +191,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                     i = i + 1;
                 }
+
+                h264writer.write_rtp(&packet).unwrap();
 
                 // println!("writer: {:?}", writer);
                 // println!("{:?}",samples);
