@@ -30,6 +30,7 @@ use bytes::Bytes;
 use nats::{self, asynk::Connection};
 use rtp::packet::Packet;
 use std::error::Error as OtherError;
+use std::fs::{self, File};
 use std::time::{Duration, SystemTime};
 use throttle::Throttle;
 use tokio::net::TcpStream;
@@ -160,7 +161,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let mut writer = vec![];
                 let w = Cursor::new(&mut writer);
-                let mut h264writer = H264Writer::new(w);
+                let mut f_w = File::create("test.h264").unwrap();
+                let mut h264writer = H264Writer::new(f_w);
 
                 let mut samples = samples.clone();
 
