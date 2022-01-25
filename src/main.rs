@@ -26,11 +26,13 @@ use std::io::{Cursor, Write}; // bring trait into scope
 use tokio::runtime::Handle;
 mod throttle;
 use async_std::task;
+use bastion::prelude::*;
 use bytes::Bytes;
 use nats::{self, asynk::Connection};
 use rtp::packet::Packet;
 use std::error::Error as OtherError;
 use std::fs::File;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 use throttle::Throttle;
 use tokio::net::TcpStream;
@@ -109,7 +111,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    let mut count = 0;
+    let count = Arc::new(Mutex::new(0));
 
     let mut i = 1;
 
@@ -120,6 +122,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         Ok(n) => n.as_millis(),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
+
+    blocking!(scheduler(count.clone()));
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -127,6 +131,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
+                let count = count.clone();
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
                 //                println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
@@ -182,13 +187,18 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     println!("NEXT INDEX FRAME: {:?}", now - time);
 
                     time = now;
+
+                    i = i + 1;
                 }
 
-                if i % 2 == 0 || is_key_frame {
-                    h264writer.write_rtp(&packet).unwrap();
-                }
+                // if i % 2 == 0 {
+                match h264writer.write_rtp(&packet) {
+                    Ok(_) => *count.lock().unwrap() = *count.lock().unwrap() + 1,
+                    Err(_) => {}
+                };
 
-                i = i + 1;
+                println!("COUNT: {:?}", *count.lock().unwrap());
+                // }
                 // else {
                 //     // println!("NO KEY: {}", i);
 
@@ -408,5 +418,22 @@ async fn transcode_handler(ctx: BastionContext) -> Result<(), ()> {
             .on_fallback(|unknown, _sender_addr| {
                 println!("unknown");
             });
+    }
+}
+
+fn scheduler(count: Arc<Mutex<i32>>) {
+    let mut sched = JobScheduler::new();
+
+    sched.add(Job::new("0/1 * * * * *".parse().unwrap(), || {
+        // check_time_config(recording_scheduler);
+        *count.lock().unwrap() = 0;
+
+        println!("I get executed every 23:59!");
+    }));
+
+    loop {
+        sched.tick();
+
+        // std::thread::sleep(Duration::from_secs(30));
     }
 }
