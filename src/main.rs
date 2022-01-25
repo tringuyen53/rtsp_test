@@ -166,7 +166,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 let mut h264writer = H264Writer::new(f_w);
 
-                let pkt = Bytes::from_static(samples.clone());
+                let pkt = Bytes::from_static(samples);
 
                 let buf = &mut pkt.clone();
 
@@ -174,6 +174,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 h264writer.write_rtp(&packet).unwrap();
                 h264writer.close().unwrap();
+
+                buf.clear();
 
                 let is_key_frame = is_key_frame(&packet.payload);
 
