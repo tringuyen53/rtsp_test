@@ -186,7 +186,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                     };
 
-                    let timestamp = timestamp / 1_000_000_000i64;
+                    let timestamp = now as i64 / 1_000_000_000i64;
                     let naive = NaiveDateTime::from_timestamp_opt(
                         timestamp,
                         (timestamp % 1000) as u32 * 1_000_000,
