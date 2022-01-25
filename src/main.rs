@@ -138,6 +138,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     gst::FlowError::Error
                 })?;
 
+                let buffer = *buffer.clone();
+
                 //        println!("Buffer {:?}", buffer);
 
                 let map = buffer.map_readable().map_err(|_| {
