@@ -113,7 +113,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         .expect("Sink element is expected to be an appsink!");
 
     let count = Arc::new(Mutex::new(0));
-    let count_2 = count.clone()
+    let count_2 = count.clone();
 
     let mut i = 1;
 
