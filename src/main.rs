@@ -113,8 +113,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    let count = Arc::new(Mutex::new(0));
-    let count_2 = count.clone();
+    let mut count = 0;
 
     let mut i = 0;
 
@@ -203,16 +202,19 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 if i % 2 == 0 {
                     // println!("EVEN NUMBER");
-                    match h264writer.write_rtp(&packet) {
-                        Ok(_) => {
-                            let timestamp =
-                                match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                    if count != 2 {
+                        match h264writer.write_rtp(&packet) {
+                            Ok(_) => {
+                                let timestamp = match SystemTime::now()
+                                    .duration_since(SystemTime::UNIX_EPOCH)
+                                {
                                     Ok(n) => n.as_nanos() as i64,
                                     Err(_) => panic!("SystemTime before UNIX EPOCH!"),
                                 };
-                        }
-                        Err(_) => {}
-                    };
+                            }
+                            Err(_) => {}
+                        };
+                    }
                 } else {
                     // println!("ODD NUMBER");
                     if is_key_frame {
@@ -220,6 +222,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     }
                 }
 
+                count = count + 1;
                 // i = i + 1;
                 // else {
                 //     // println!("NO KEY: {}", i);
