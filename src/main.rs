@@ -95,7 +95,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     //      uri
     //    ))?
     let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+         "rtspsrc location={} latency=300 ! rtph264depay ! queue leaky=0 ! h264parse ! queue leaky=0 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! vaapih264enc ! queue leaky=0 ! rtph264pay config-interval=1 ! application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
          uri
      ))?
     // let pipeline = gst::parse_launch(&format!(
@@ -218,11 +218,11 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     Err(_) => {}
                 };
 
-                let slice_type = decode_golomb(&packet.payload, index);
+                // let slice_type = decode_golomb(&packet.payload, index);
 
-                println!("SLICE TYPE: {}", slice_type.0);
+                // println!("SLICE TYPE: {}", slice_type.0);
 
-                index = slice_type.1;
+                // index = slice_type.1;
 
                 // }
                 // } else {
