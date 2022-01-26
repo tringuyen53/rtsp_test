@@ -218,11 +218,11 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     Err(_) => {}
                 };
 
-                let slice_type = decode_golomb(&packet.payload, index);
+                // let slice_type = decode_golomb(&packet.payload, index);
 
-                println!("SLICE TYPE: {}", slice_type.0);
+                // println!("SLICE TYPE: {}", slice_type.0);
 
-                index = slice_type.1;
+                // index = slice_type.1;
 
                 // }
                 // } else {
@@ -232,7 +232,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 //     }
                 // }
 
-                // count = count + 1;
+                count = count + 1;
 
                 println!("COUNT: {}", count);
                 // i = i + 1;
@@ -488,7 +488,7 @@ fn decode_golomb(byte_stream: &[u8], index: usize) -> (i32, usize) {
         (0, index)
     } else {
         let mut b = 0;
-        while b == 0 {
+        while b != 0 {
             b = get_bit_by_pos(byte_stream, pos);
             pos = pos + 1;
 
