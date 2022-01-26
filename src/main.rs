@@ -202,18 +202,18 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // if i % 2 == 0 {
                 // println!("EVEN NUMBER");
-                if count != 2 {
-                    match h264writer.write_rtp(&packet) {
-                        Ok(_) => {
-                            let timestamp =
-                                match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                                    Ok(n) => n.as_nanos() as i64,
-                                    Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-                                };
-                        }
-                        Err(_) => {}
-                    };
-                }
+                // if count != 2 {
+                match h264writer.write_rtp(&packet) {
+                    Ok(_) => {
+                        let timestamp =
+                            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                                Ok(n) => n.as_nanos() as i64,
+                                Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                            };
+                    }
+                    Err(_) => {}
+                };
+                // }
                 // } else {
                 //     // println!("ODD NUMBER");
                 //     if is_key_frame {
