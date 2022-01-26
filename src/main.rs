@@ -66,7 +66,7 @@ fn is_key_frame(data: &[u8]) -> bool {
         false
     } else {
         let word = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
-        println!("{}", word);
+        println!("{} {} {} {}", data[0], data[1], data[2], data[3]);
         let nalu_type = (word >> 24) & NALU_TYPE_BITMASK;
         (nalu_type == NALU_TTYPE_STAP_A && (word & NALU_TYPE_BITMASK) == NALU_TTYPE_SPS)
             || (nalu_type == NALU_TTYPE_SPS)
