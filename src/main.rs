@@ -222,6 +222,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 // }
 
                 count = count + 1;
+
+                println!("COUNT: {}", count);
                 // i = i + 1;
                 // else {
                 //     // println!("NO KEY: {}", i);
