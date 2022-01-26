@@ -193,7 +193,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     )
                     .unwrap();
 
-                    // i = i + 1;
+                    i = i + 1;
                     // println!("Count {} int Sucess time: {:?}", i, naive);
 
                     // println!("NEXT INDEX FRAME: {:?}", now - time);
@@ -201,8 +201,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     // time = now;
                 }
 
-                if i % 2 == 0 || is_key_frame {
-                    println!("EVEN NUMBER");
+                if i % 2 == 0 {
+                    // println!("EVEN NUMBER");
                     match h264writer.write_rtp(&packet) {
                         Ok(_) => {
                             let timestamp =
@@ -214,10 +214,13 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                         Err(_) => {}
                     };
                 } else {
-                    println!("ODD NUMBER");
+                    // println!("ODD NUMBER");
+                    if is_key_frame {
+                        h264writer.write_rtp(&packet).unwrap();
+                    }
                 }
 
-                i = i + 1;
+                // i = i + 1;
                 // else {
                 //     // println!("NO KEY: {}", i);
 
