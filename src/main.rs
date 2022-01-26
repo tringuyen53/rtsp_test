@@ -115,7 +115,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
     let mut count = 1;
 
-    let mut index = 0;
+    let mut index = 1;
 
     let mut i = 0;
 
