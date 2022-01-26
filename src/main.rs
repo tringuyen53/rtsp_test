@@ -113,7 +113,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    let mut count = 0;
+    let mut count = 1;
 
     let mut i = 0;
 
@@ -202,7 +202,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // if i % 2 == 0 {
                 // println!("EVEN NUMBER");
-                if i != 2 {
+                if count != 4 {
                     match h264writer.write_rtp(&packet) {
                         Ok(_) => {
                             let timestamp =
