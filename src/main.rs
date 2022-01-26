@@ -203,7 +203,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // if i % 2 == 0 {
                 // println!("EVEN NUMBER");
-                if count != 3 {
+                if count != 4 && count != 2 {
                     match h264writer.write_rtp(&packet) {
                         Ok(_) => {
                             let timestamp =
