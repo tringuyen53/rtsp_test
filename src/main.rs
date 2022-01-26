@@ -193,6 +193,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     .unwrap();
 
                     i = i + 1;
+
+                    count = 0;
                     println!("Count {} int Sucess time: {:?}", i, naive);
 
                     // println!("NEXT INDEX FRAME: {:?}", now - time);
