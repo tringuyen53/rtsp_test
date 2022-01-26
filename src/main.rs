@@ -115,6 +115,8 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
     let mut count = 1;
 
+    let mut index = 0;
+
     let mut i = 0;
 
     let mut f_w = File::create("test.h264").unwrap();
@@ -204,18 +206,25 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // if i % 2 == 0 {
                 // println!("EVEN NUMBER");
-                if count != 5 && count != 6 && count != 7 {
-                    match h264writer.write_rtp(&packet) {
-                        Ok(_) => {
-                            let timestamp =
-                                match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                                    Ok(n) => n.as_nanos() as i64,
-                                    Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-                                };
-                        }
-                        Err(_) => {}
-                    };
-                }
+                // if count != 5 && count != 6 && count != 7 {
+                match h264writer.write_rtp(&packet) {
+                    Ok(_) => {
+                        let timestamp =
+                            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                                Ok(n) => n.as_nanos() as i64,
+                                Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                            };
+                    }
+                    Err(_) => {}
+                };
+
+                let slice_type = decode_golomb(&packet.payload, index);
+
+                println!("SLICE TYPE: {}", slice_type.0);
+
+                index = slice_type.1;
+
+                // }
                 // } else {
                 //     // println!("ODD NUMBER");
                 //     if is_key_frame {
@@ -223,7 +232,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                 //     }
                 // }
 
-                count = count + 1;
+                // count = count + 1;
 
                 println!("COUNT: {}", count);
                 // i = i + 1;
@@ -463,5 +472,37 @@ fn scheduler(count: Arc<Mutex<i32>>) {
         sched.tick();
 
         std::thread::sleep(Duration::from_secs(30));
+    }
+}
+
+fn get_bit_by_pos(buffer: &[u8], pos: usize) -> i32 {
+    (buffer[pos / 8] >> (8 - pos % 8) & 0x01).into()
+}
+
+fn decode_golomb(byte_stream: &[u8], index: usize) -> (i32, usize) {
+    let mut leading_zero_bits = -1;
+    let mut code_num = 0;
+    let mut pos = index;
+
+    if byte_stream.len() == 0 || pos == 0 {
+        (0, index)
+    } else {
+        let mut b = 0;
+        while b == 0 {
+            b = get_bit_by_pos(byte_stream, pos);
+            pos = pos + 1;
+
+            leading_zero_bits = leading_zero_bits + 1;
+        }
+
+        while b > 0 {
+            b = leading_zero_bits;
+            code_num = code_num | (get_bit_by_pos(byte_stream, pos) << (b - 1));
+            pos = pos + 1;
+
+            b = b - 1;
+        }
+
+        ((1 << leading_zero_bits) - 1 + code_num, pos)
     }
 }
