@@ -66,7 +66,6 @@ fn is_key_frame(data: &[u8]) -> bool {
         false
     } else {
         let word = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
-        println!("{} {} {} {}", data[0], data[1], data[2], data[3]);
         let nalu_type = (word >> 24) & NALU_TYPE_BITMASK;
         (nalu_type == NALU_TTYPE_STAP_A && (word & NALU_TYPE_BITMASK) == NALU_TTYPE_SPS)
             || (nalu_type == NALU_TTYPE_SPS)
@@ -194,7 +193,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
                     .unwrap();
 
                     i = i + 1;
-                    // println!("Count {} int Sucess time: {:?}", i, naive);
+                    println!("Count {} int Sucess time: {:?}", i, naive);
 
                     // println!("NEXT INDEX FRAME: {:?}", now - time);
 
@@ -203,7 +202,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
                 // if i % 2 == 0 {
                 // println!("EVEN NUMBER");
-                if count != 4 && count != 2 {
+                if count != 4 {
                     match h264writer.write_rtp(&packet) {
                         Ok(_) => {
                             let timestamp =
