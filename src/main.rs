@@ -19,6 +19,7 @@ use derive_more::{Display, Error};
 use gst::element_error;
 use gst::glib;
 use gst::prelude::*;
+use gst::prelude::*;
 use image::{DynamicImage, ImageFormat};
 use rand::Rng;
 use std::fs;
@@ -104,6 +105,18 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     // ))?
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
+
+    let capsfilter = gst::ElementFactory::make("capsfilter", None)
+        .map_err(|_| MissingElement("capsfilter"))
+        .unwrap();
+
+    pipeline.add_many(&[&capsfilter])?;
+    gst::Element::link_many(&[&capsfilter])?;
+
+    let caps = gst::Caps::builder("video/x-raw")
+        .field("framerate", gst::Fraction::new(15, 1))
+        .build();
+    capsfilter.set_property("caps", &caps);
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
