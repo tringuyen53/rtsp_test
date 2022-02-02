@@ -140,7 +140,20 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let new_image = image::load_from_memory_with_format(&samples, ImageFormat::Jpeg);
+                let origin_img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match origin_img_result {
+                    Ok(image) => {
+                            image.save(format!("origin-img-{}-{}.jpg", seed, count)).unwrap();
+                        //  count += 1;
+                    },
+                    Err(e) => {
+                        println!("origin load image error: {:?}", e);
+                        ()
+                    },
+                };
+
+                let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 let new_image = match new_image { 
                     Ok(image) => {
                     let width = NonZeroU32::new(image.width()).unwrap();
@@ -178,6 +191,18 @@ async fn connect_nats() -> Connection {
                     let mut result_buf = BufWriter::new(Vec::new());
                     image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
 
+                    let scaled_img_result = 
+                    image::load_from_memory_with_format(result_buf.buffer(), ImageFormat::Jpeg);
+                    match scaled_img_result {
+                        Ok(image) => {
+                                image.save(format!("scaled-img-{}-{}.jpg", seed, count)).unwrap();
+                            //  count += 1;
+                        },
+                        Err(e) => {
+                            println!("scaled load image error: {:?}", e);
+                            ()
+                        },
+                    };
                     Vec::from(result_buf.buffer())
                 }
                 Err(_) => unreachable!(),
@@ -187,11 +212,11 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+                         image.save(format!("final-img-{}-{}.jpg", seed, count)).unwrap();
                          count += 1;
                     },
                  Err(e) => {
-			println!("load image error: {:?}", e);
+			println!("final load image error: {:?}", e);
 			()
 		},
              };
