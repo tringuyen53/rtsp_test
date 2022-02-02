@@ -78,7 +78,7 @@ async fn connect_nats() -> Connection {
     //  ))?
 
      let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! vaapipostproc format=11 ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -163,7 +163,7 @@ async fn connect_nats() -> Connection {
                         width,
                         height,
                         image.into_bytes(),
-                        fr::PixelType::U8x4
+                        fr::PixelType::U8x3
                     ).unwrap();
 
                     let origin_after_torgba8_img_result = 
@@ -179,8 +179,8 @@ async fn connect_nats() -> Connection {
                         },
                     };
 
-                    let alpha_mul_div = fr::MulDiv::default();
-                    alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+                    // let alpha_mul_div = fr::MulDiv::default();
+                    // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
                     let dst_width = NonZeroU32::new(720).unwrap();
                     let dst_height = NonZeroU32::new(540).unwrap();
@@ -199,10 +199,10 @@ async fn connect_nats() -> Connection {
 
                     resizer.resize(&src_image.view(), &mut dst_view).unwrap();
 
-                    alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+                    // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
                     let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
+                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
                     // let scaled = image::save_buffer(format!("scaled-img-{}-{}.jpg", seed, count), dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8);
                     // match scaled {
                     //     Ok() => count += 1,
