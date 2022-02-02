@@ -162,9 +162,22 @@ async fn connect_nats() -> Connection {
                     let mut src_image = fr::Image::from_vec_u8(
                         width,
                         height,
-                        image.to_rgba8().into_raw(),
-                        fr::PixelType::U8x4
+                        image.into_bytes(),
+                        fr::PixelType::U8x3
                     ).unwrap();
+
+                    let origin_after_torgba8_img_result = 
+                    image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
+                    match origin_after_torgba8_img_result {
+                        Ok(image) => {
+                                image.save(format!("origin-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
+                             count += 1;
+                        },
+                        Err(e) => {
+                            println!("scaled load image error: {:?}", e);
+                            ()
+                        },
+                    };
 
                     let alpha_mul_div = fr::MulDiv::default();
                     alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
@@ -189,20 +202,22 @@ async fn connect_nats() -> Connection {
                     alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
                     let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
+                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
+                    
+                    // let scaled_img_result = 
+                    // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
+                    // match scaled_img_result {
+                    //     Ok(image) => {
+                    //             image.save(format!("scaled-img-{}-{}.jpg", seed, count)).unwrap();
+                    //         //  count += 1;
+                    //     },
+                    //     Err(e) => {
+                    //         println!("scaled load image error: {:?}", e);
+                    //         ()
+                    //     },
+                    // };
 
-                    let scaled_img_result = 
-                    image::load_from_memory_with_format(result_buf.buffer(), ImageFormat::Jpeg);
-                    match scaled_img_result {
-                        Ok(image) => {
-                                image.save(format!("scaled-img-{}-{}.jpg", seed, count)).unwrap();
-                            //  count += 1;
-                        },
-                        Err(e) => {
-                            println!("scaled load image error: {:?}", e);
-                            ()
-                        },
-                    };
+
                     Vec::from(result_buf.buffer())
                 }
                 Err(_) => unreachable!(),
