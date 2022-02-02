@@ -22,7 +22,7 @@ use tokio::runtime::Handle;
 use rand::Rng;
 use anyhow::Error;
 use derive_more::{Display, Error};
-use image::{DynamicImage, ImageFormat};
+use image::*;
 use bastion::distributor::*;
 use bastion::prelude::*;
 mod throttle;
@@ -140,7 +140,7 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let new_image = image::load_from_memory(samples);
+                let new_image = image::load_from_memory_with_format(&samples, ImageFormat::Jpeg);
                 let new_image = match new_image { 
                     Ok(image) => {
                     let width = NonZeroU32::new(image.width()).unwrap();
@@ -157,7 +157,7 @@ async fn connect_nats() -> Connection {
                     alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
                     let dst_width = NonZeroU32::new(720).unwrap();
-                    let dst_height = NonZeroU32::new(5402).unwrap();
+                    let dst_height = NonZeroU32::new(540).unwrap();
 
                     let mut dst_image = fr::Image::new(
                         dst_width,
@@ -180,7 +180,7 @@ async fn connect_nats() -> Connection {
 
                     Vec::from(result_buf.buffer())
                 }
-                Err(_) => return
+                Err(_) => unreachable!(),
             };
 
              let img_result = 
@@ -190,7 +190,10 @@ async fn connect_nats() -> Connection {
                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
                          count += 1;
                     },
-                 Err(_) => (),
+                 Err(e) => {
+			println!("load image error: {:?}", e);
+			()
+		},
              };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
@@ -357,7 +360,7 @@ let rtsp2_actor = Distributor::named("rtsp-2");
 //rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://10.50.13.251/1/h264major").expect("tell failed");
-rtsp_actor.tell_one("rtsp://10.50.13.252/1/h264major").expect("tell failed");
+rtsp_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
 //rtsp2_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
 //rtsp_actor.tell_one("rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1").expect("tell failed");
 //println!("Result: {:?}", res);    
