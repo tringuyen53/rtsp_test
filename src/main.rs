@@ -15,6 +15,7 @@ use gst::element_error;
 use gst::glib;
 use gst::prelude::*;
 use byte_slice_cast::*;
+use image::GenericImageView;
 use std::io::Write; // bring trait into scope
 use std::fs;
 use tokio::runtime::Handle;
@@ -30,6 +31,9 @@ use tokio::net::TcpStream;
 use std::error::Error as OtherError;
 use nats::{self, asynk::Connection};
 use async_std::task;
+use fast_image_resize as fr;
+use std::io::BufWriter;
+use std::num::NonZeroU32;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -68,14 +72,15 @@ async fn connect_nats() -> Connection {
     //    "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! avdec_h264 ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
   //      uri
 //    ))?
+    //  let pipeline = gst::parse_launch(&format!(
+    //      "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+    //      uri
+    //  ))?
+
      let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
-         uri
-     ))?
-    // let pipeline = gst::parse_launch(&format!(
-    //     "rtspsrc location={} latency=100 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
-    //     uri
-    // ))?
+        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+        uri
+    ))?
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
 
@@ -135,15 +140,58 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-//              let img_result = 
-//                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-//              match img_result {
-//                  Ok(image) => {
-//                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
-//                          count += 1;
-//                     },
-//                  Err(_) => (),
-//              };
+                let new_image = image::load_from_memory(samples);
+                let new_image = match new_image { 
+                    Ok(image) => {
+                    let width = NonZeroU32::new(image.width()).unwrap();
+                    let height = NonZeroU32::new(image.height()).unwrap();
+                    println!("Origin width height - {:?}x{:?}", width, height);
+                    let mut src_image = fr::Image::from_vec_u8(
+                        width,
+                        height,
+                        image.to_rgba8().into_raw(),
+                        fr::PixelType::U8x4
+                    ).unwrap();
+
+                    let alpha_mul_div = fr::MulDiv::default();
+                    alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+
+                    let dst_width = NonZeroU32::new(720).unwrap();
+                    let dst_height = NonZeroU32::new(5402).unwrap();
+
+                    let mut dst_image = fr::Image::new(
+                        dst_width,
+                        dst_height,
+                        src_image.pixel_type(),
+                    );
+
+                    let mut dst_view = dst_image.view_mut();
+
+                    let mut resizer = fr::Resizer::new(
+                        fr::ResizeAlg::Convolution(fr::FilterType::Lanczos3)
+                    );
+
+                    resizer.resize(&src_image.view(), &mut dst_view).unwrap();
+
+                    alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+                    
+                    let mut result_buf = BufWriter::new(Vec::new());
+                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
+
+                    Vec::from(result_buf.buffer())
+                }
+                Err(_) => return
+            };
+
+             let img_result = 
+                 image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
+             match img_result {
+                 Ok(image) => {
+                         image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
+                         count += 1;
+                    },
+                 Err(_) => (),
+             };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {

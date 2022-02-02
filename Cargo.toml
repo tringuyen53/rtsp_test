@@ -22,6 +22,7 @@ gstreamer-app = "*"
 byte-slice-cast = "1"
 nats = {git = "https://github.com/nats-io/nats.rs", branch="main"}
 async-std = "*"
+fast_image_resize = "*"
 # ffav = {git = "https://github.com/vaxpl/ffav-rs.git", branch = "master"}
 # ffav = "*"
 

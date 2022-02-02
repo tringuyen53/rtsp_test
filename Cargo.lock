@@ -621,6 +621,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
+name = "fast_image_resize"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5237d5b62edc1b658259673747ca15f317d6a51b4015b20159fc64e084281b6e"
+dependencies = [
+ "num-traits",
+ "thiserror",
+]
+
+[[package]]
 name = "fastrand"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1427,6 +1437,7 @@ dependencies = [
  "bastion",
  "byte-slice-cast",
  "derive_more",
+ "fast_image_resize",
  "gstreamer",
  "gstreamer-app",
  "gstreamer-video",
