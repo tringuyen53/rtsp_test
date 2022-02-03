@@ -162,7 +162,7 @@ async fn connect_nats() -> Connection {
                     let mut src_image = fr::Image::from_vec_u8(
                         width,
                         height,
-                        image.into_bytes(),
+                        image.into_rgb8().into_raw(),
                         fr::PixelType::U8x3
                     ).unwrap();
 
