@@ -176,7 +176,7 @@ async fn connect_nats() -> Connection {
                         width,
                         height,
                         image.to_rgba8().into_raw(),
-                        fr::PixelType::U8x3
+                        fr::PixelType::U8x4
                     ).unwrap();
 
                     // let origin_after_torgba8_img_result = 
