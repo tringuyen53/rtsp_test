@@ -250,7 +250,7 @@ async fn connect_nats() -> Connection {
              };
              let scaled = image::save_buffer(format!("save-buffer-img-{}-{}.jpg", seed, count), &new_image, dst_width.get(), dst_height.get(), ColorType::Rgba8);
                     match scaled {
-                        Ok() => count += 1,
+                        Ok(()) => count += 1,
                         Err(e) => println!("Final save buffer image save error: {:?}", e),
                     };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
