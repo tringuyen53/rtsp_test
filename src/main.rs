@@ -159,28 +159,41 @@ async fn connect_nats() -> Connection {
                     let width = NonZeroU32::new(image.width()).unwrap();
                     let height = NonZeroU32::new(image.height()).unwrap();
                     println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
+
+                    // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
+                    // match test_into_raw_image {
+                    //     Ok(image) => {
+                    //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
+                    //      count += 1;
+                    //     },
+                    //     Err(e) => {
+                    //         println!("test load rgb8 image error: {:?}", e);
+                    //         ()
+                    //     },
+                    // };
+
                     let mut src_image = fr::Image::from_vec_u8(
                         width,
                         height,
-                        image.into_rgb8().into_raw(),
+                        image.to_rgba8().into_raw(),
                         fr::PixelType::U8x3
                     ).unwrap();
 
-                    let origin_after_torgba8_img_result = 
-                    image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
-                    match origin_after_torgba8_img_result {
-                        Ok(image) => {
-                                image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
-                            //  count += 1;
-                        },
-                        Err(e) => {
-                            println!("scaled load image error: {:?}", e);
-                            ()
-                        },
-                    };
+                    // let origin_after_torgba8_img_result = 
+                    // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
+                    // match origin_after_torgba8_img_result {
+                    //     Ok(image) => {
+                    //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
+                    //         //  count += 1;
+                    //     },
+                    //     Err(e) => {
+                    //         println!("scaled load image error: {:?}", e);
+                    //         ()
+                    //     },
+                    // };
 
-                    // let alpha_mul_div = fr::MulDiv::default();
-                    // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+                    let alpha_mul_div = fr::MulDiv::default();
+                    alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
                     let dst_width = NonZeroU32::new(720).unwrap();
                     let dst_height = NonZeroU32::new(540).unwrap();
@@ -199,15 +212,10 @@ async fn connect_nats() -> Connection {
 
                     resizer.resize(&src_image.view(), &mut dst_view).unwrap();
 
-                    // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+                    alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
                     let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
-                    // let scaled = image::save_buffer(format!("scaled-img-{}-{}.jpg", seed, count), dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8);
-                    // match scaled {
-                    //     Ok() => count += 1,
-                    //     Err(e) => println!("Scaled image save error: {:?}", e),
-                    // };
+                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
                     
                     let scaled_img_result = 
                     image::load_from_memory_with_format(result_buf.buffer(), ImageFormat::Jpeg);
@@ -240,6 +248,11 @@ async fn connect_nats() -> Connection {
 			()
 		},
              };
+             let scaled = image::save_buffer(format!("save-buffer-img-{}-{}.jpg", seed, count), &new_image, dst_width.get(), dst_height.get(), ColorType::Rgba8);
+                    match scaled {
+                        Ok() => count += 1,
+                        Err(e) => println!("Final save buffer image save error: {:?}", e),
+                    };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
