@@ -217,18 +217,18 @@ async fn connect_nats() -> Connection {
                     let mut result_buf = BufWriter::new(Vec::new());
                     image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
                     
-                    let scaled_img_result = 
-                    image::load_from_memory_with_format(result_buf.buffer(), ImageFormat::Jpeg);
-                    match scaled_img_result {
-                        Ok(image) => {
-                                image.save(format!("scaled-img-{}-{}.jpg", seed, count)).unwrap();
-                            //  count += 1;
-                        },
-                        Err(e) => {
-                            println!("scaled load image error: {:?}", e);
-                            ()
-                        },
-                    };
+                    // let scaled_img_result = 
+                    // image::load_from_memory_with_format(result_buf.buffer(), ImageFormat::Jpeg);
+                    // match scaled_img_result {
+                    //     Ok(image) => {
+                    //             image.save(format!("scaled-img-{}-{}.jpg", seed, count)).unwrap();
+                    //         //  count += 1;
+                    //     },
+                    //     Err(e) => {
+                    //         println!("scaled load image error: {:?}", e);
+                    //         ()
+                    //     },
+                    // };
                     let scaled = image::save_buffer(format!("save-buffer-img-{}-{}.jpg", seed, count), result_buf.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8);
                     match scaled {
                         Ok(()) => count += 1,
