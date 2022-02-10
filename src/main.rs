@@ -105,6 +105,7 @@ async fn connect_nats() -> Connection {
         .expect("Sink element is expected to be an appsink!");
 
     let mut count = 0;
+    let mut got_snapshot = false;
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -125,7 +126,12 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-                
+        if got_snapshot {
+            println!("stop pipeline");
+            return Err(gst::FlowError::Eos);
+        }
+        got_snapshot = true;
+
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -239,7 +245,7 @@ async fn connect_nats() -> Connection {
              match img_result {
                  Ok(image) => {
                         println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
-                        //  image.save(format!("final-img-{}-{}.jpg", seed, count)).unwrap();
+                         image.save(format!("final-img-{}-{}.jpg", seed, count)).unwrap();
                         //  count += 1;
                     },
                  Err(e) => {
@@ -326,14 +332,14 @@ async fn main() {
         // "rtsp://10.50.13.240/1/h264major",
         "rtsp://10.50.13.241/1/h264major",
         // "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
-        "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.248/1/h264major",
-        "rtsp://10.50.13.249/1/h264major",
-        "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
-        "rtsp://10.50.13.254/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.244/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.248/1/h264major",
+        // "rtsp://10.50.13.249/1/h264major",
+        // "rtsp://10.50.13.252/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.13.254/1/h264major",
     ];
 
     Bastion::init();
@@ -349,7 +355,7 @@ async fn main() {
 
     let cam_ip = vec![
         // 36, 
-        231, 
+        // 231, 
         // 233, 
         // 234, 
         // 235, 
@@ -360,14 +366,14 @@ async fn main() {
         // 240,
         241,
         // 242, 
-        243, 
-        244, 
-        245, 
-        248, 
-        249, 
-        252, 
-        253, 
-        254,
+        // 243, 
+        // 244, 
+        // 245, 
+        // 248, 
+        // 249, 
+        // 252, 
+        // 253, 
+        // 254,
     ];
 
     for ip in &cam_ip {
