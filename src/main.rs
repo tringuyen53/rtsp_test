@@ -58,10 +58,15 @@ pub struct RTPMessage {
 }
 
 const NATS_URL: &str = "tls://dev.lexray.com:60064";
+// async fn connect_nats() -> Connection {
+//     println!("Connecting to NATS..");
+//     nats::asynk::Options::with_credentials("hub.creds")
+//         .connect(NATS_URL)
+//         .await
+//         .unwrap()
+// }
 async fn connect_nats() -> Connection {
-    println!("Connecting to NATS..");
-    nats::asynk::Options::with_credentials("hub.creds")
-        .connect(NATS_URL)
+    nats::asynk::connect("nats://demo.nats.io:4222")
         .await
         .unwrap()
 }
