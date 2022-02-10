@@ -282,7 +282,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
             MessageView::Eos(..) => break,
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
-                println!("Error: {:?}",err.error().backtrace());
+                println!("Error: {:?}",err.error());
                 return Err(ErrorMessage {
                     src: msg
                         .src()
