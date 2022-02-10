@@ -67,7 +67,7 @@ async fn connect_nats() -> Connection {
 }
 
  fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
-    let client = task::block_on(connect_nats());
+    // let client = task::block_on(connect_nats());
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
