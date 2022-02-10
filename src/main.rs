@@ -50,16 +50,23 @@ struct ErrorMessage {
     source: glib::Error,
 }
 
-const TOPIC: &str = "rtsp_test";
-const URL: &str = "rtsp://10.50.13.252/1/h264major";
+#[derive(Debug, Clone)]
+pub struct RTPMessage {
+    pub url: String,
+    pub client: Connection,
+    pub id: String,
+}
 
+const NATS_URL: &str = "tls://dev.lexray.com:60064";
 async fn connect_nats() -> Connection {
-    nats::asynk::connect("nats://demo.nats.io:4222")
+    println!("Connecting to NATS..");
+    nats::asynk::Options::with_credentials("hub.creds")
+        .connect(NATS_URL)
         .await
         .unwrap()
 }
 
- fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
     let client = task::block_on(connect_nats());
     gst::init()?;
 
@@ -78,7 +85,7 @@ async fn connect_nats() -> Connection {
     //  ))?
 
      let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=3/1 ! queue leaky=0 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! queue leaky=0 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -101,7 +108,7 @@ async fn connect_nats() -> Connection {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-//                println!("Sample: {:?}", sample);
+            //    println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
@@ -140,18 +147,18 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let origin_img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match origin_img_result {
-                    Ok(image) => {
-                            image.save(format!("origin-img-{}-{}.jpg", seed, count)).unwrap();
-                        //  count += 1;
-                    },
-                    Err(e) => {
-                        println!("origin load image error: {:?}", e);
-                        ()
-                    },
-                };
+                // let origin_img_result = 
+                //     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                // match origin_img_result {
+                //     Ok(image) => {
+                //             image.save(format!("origin-img-{}-{}.jpg", seed, count)).unwrap();
+                //         //  count += 1;
+                //     },
+                //     Err(e) => {
+                //         println!("origin load image error: {:?}", e);
+                //         ()
+                //     },
+                // };
 
                 let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 let new_image = match new_image { 
@@ -175,8 +182,8 @@ async fn connect_nats() -> Connection {
                     let mut src_image = fr::Image::from_vec_u8(
                         width,
                         height,
-                        image.to_rgba8().into_raw(),
-                        fr::PixelType::U8x4
+                        image.to_rgb8().into_raw(),
+                        fr::PixelType::U8x3
                     ).unwrap();
 
                     // let origin_after_torgba8_img_result = 
@@ -192,8 +199,8 @@ async fn connect_nats() -> Connection {
                     //     },
                     // };
 
-                    let alpha_mul_div = fr::MulDiv::default();
-                    alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+                    // let alpha_mul_div = fr::MulDiv::default();
+                    // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
                     let dst_width = NonZeroU32::new(720).unwrap();
                     let dst_height = NonZeroU32::new(540).unwrap();
@@ -212,30 +219,12 @@ async fn connect_nats() -> Connection {
 
                     resizer.resize(&src_image.view(), &mut dst_view).unwrap();
 
-                    alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+                    // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
                     let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8).unwrap();
-                    
-                    // let scaled_img_result = 
-                    // image::load_from_memory_with_format(result_buf.buffer(), ImageFormat::Jpeg);
-                    // match scaled_img_result {
-                    //     Ok(image) => {
-                    //             image.save(format!("scaled-img-{}-{}.jpg", seed, count)).unwrap();
-                    //         //  count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("scaled load image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
-                    let scaled = image::save_buffer(format!("save-buffer-img-{}-{}.jpg", seed, count), result_buf.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgba8);
-                    match scaled {
-                        Ok(()) => count += 1,
-                        Err(e) => println!("Final save buffer image save error: {:?}", e),
-                    };
+                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
 
-                    Vec::from(result_buf.buffer())
+                    Vec::from(result_buf.into_inner().unwrap())
                 }
                 Err(_) => unreachable!(),
             };
@@ -244,8 +233,8 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("final-img-{}-{}.jpg", seed, count)).unwrap();
-                         count += 1;
+                        //  image.save(format!("final-img-{}-{}.jpg", seed, count)).unwrap();
+                        //  count += 1;
                     },
                  Err(e) => {
 			println!("final load image error: {:?}", e);
@@ -293,7 +282,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
             MessageView::Eos(..) => break,
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
-                println!("Error: {:?}",err.error());
+                println!("Error: {:?}",err.error().backtrace());
                 return Err(ErrorMessage {
                     src: msg
                         .src()
@@ -319,47 +308,26 @@ async fn main() {
     
 
     let urls = [
-        // "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
         // "rtsp://10.50.29.36/1/h264major",
-        // "rtsp://10.50.31.171/1/h264major",
-        // "rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
-        // "rtsp://vietnam:L3xRay123!@10.50.30.212/1/h264major",
-        // "rtsp://10.50.31.171/1/h264major",
-//        "rtsp://10.50.29.36/1/h264major",
-        //"rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1",
-//        "rtsp://10.50.13.237/1/h264major",
- "rtsp://10.50.13.229/1/h264major",
- "rtsp://10.50.13.230/1/h264major",
- "rtsp://10.50.13.231/1/h264major",
- "rtsp://10.50.13.232/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
-        "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.238/1/h264major",
-        "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
+        "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.234/1/h264major",
+        // "rtsp://10.50.13.235/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.238/1/h264major",
+        // "rtsp://10.50.13.239/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
         "rtsp://10.50.13.241/1/h264major",
-   //     "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
+        // "rtsp://10.50.13.242/1/h264major",
         "rtsp://10.50.13.243/1/h264major",
         "rtsp://10.50.13.244/1/h264major",
         "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.246/1/h264major",
-        "rtsp://10.50.13.247/1/h264major",
         "rtsp://10.50.13.248/1/h264major",
         "rtsp://10.50.13.249/1/h264major",
-        "rtsp://10.50.13.250/1/h264major",
-        "rtsp://10.50.13.251/1/h264major",
         "rtsp://10.50.13.252/1/h264major",
         "rtsp://10.50.13.253/1/h264major",
         "rtsp://10.50.13.254/1/h264major",
-        //"rtsp://10.50.31.171/1/h264major",
-        //"rtsp://10.50.31.236/1/h264major",
-        //"rtsp://10.50.14.39/1/h264major",
-        //"rtsp://10.50.30.118/1/h264major",
-        //"rtsp://10.50.31.241/axis-media/media.amp",
     ];
 
     Bastion::init();
@@ -372,58 +340,61 @@ async fn main() {
                 .with_exec(get_rtsp_stream)
         })
     }).map_err(|_| println!("Error"));
-Bastion::supervisor(|supervisor| {
-        supervisor.children(|children| {
-            // Iniit staff
-            // Staff (5 members) - Going to organize the event
-            children
-                .with_distributor(Distributor::named("rtsp-2"))
-                .with_exec(get_rtsp_stream)
-        })
-    }).map_err(|_| println!("Error"));   
- std::thread::sleep(std::time::Duration::from_secs(1));
-    Bastion::supervisor(|supervisor| {
-        supervisor.children(|children| {
-            // Iniit staff
-            // Staff (5 members) - Going to organize the event
-            children
-                .with_distributor(Distributor::named("transcode"))
-                .with_exec(transcode_handler)
-        })
-    }).map_err(|_| println!("Error"));
+
+    let cam_ip = vec![
+        // 36, 
+        231, 
+        // 233, 
+        // 234, 
+        // 235, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
+        // 240,
+        241,
+        // 242, 
+        243, 
+        244, 
+        245, 
+        248, 
+        249, 
+        252, 
+        253, 
+        254,
+    ];
+
+    for ip in &cam_ip {
+        let name = format!("rtsp-{}", ip);
+        Bastion::supervisor(|supervisor| {
+            supervisor.children(|children| {
+                // Iniit staff
+                // Staff (5 members) - Going to organize the event
+                children
+                    .with_distributor(Distributor::named(name))
+                    .with_exec(get_rtsp_stream)
+            })
+        }).map_err(|_| println!("Error"));
+    }
 
     Bastion::start();
     std::thread::sleep(std::time::Duration::from_secs(2));
-    let rtsp_actor = Distributor::named("rtsp");
-let rtsp2_actor = Distributor::named("rtsp-2");
-//    for url in urls {
-//        rtsp_actor.tell_one(url).expect("tell failed");
-//    }
-//rtsp_actor.tell_one("rtsp://10.50.13.231/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.238/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.233/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.234/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.235/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.236/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.239/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.240/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.241/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.242/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.243/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.244/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.245/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.246/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.247/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.248/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.249/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.250/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://10.50.13.251/1/h264major").expect("tell failed");
-rtsp_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
-//rtsp2_actor.tell_one("rtsp://10.50.13.254/1/h264major").expect("tell failed");
-//rtsp_actor.tell_one("rtsp://vietnam:L3xRay123!@10.50.12.187/media/video1").expect("tell failed");
-//println!("Result: {:?}", res);    
-Bastion::block_until_stopped();
 
+    let mut index = 0;
+    let client = task::block_on(connect_nats());
+    for ip in &cam_ip {
+        let name = format!("rtsp-{}", ip);
+        let rtsp_actor = Distributor::named(name);
+        let msg = RTPMessage {
+            url: urls[index].to_owned(),
+            client: client.clone(),
+            id: ip.to_string(),
+        };
+        rtsp_actor.tell_one(msg).expect("tell failed");
+        index += 1;
+    }
+    
+    Bastion::block_until_stopped();
 }
 
 // #[tokio::main]
@@ -442,12 +413,12 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     //let mut rng = rand::thread_rng();
     loop {
         MessageHandler::new(ctx.recv().await?)
-            .on_tell(|message: &str, _| {
+            .on_tell(|message: RTPMessage, _| {
 //let mut rng = rand::thread_rng();                
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.to_owned(), 1).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url, message.client).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
