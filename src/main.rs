@@ -170,7 +170,7 @@ async fn connect_nats() -> Connection {
                     Ok(image) => {
                     let width = NonZeroU32::new(image.width()).unwrap();
                     let height = NonZeroU32::new(image.height()).unwrap();
-                    println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
+                    // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
 
                     // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
                     // match test_into_raw_image {
@@ -238,6 +238,7 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
+                        println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
                         //  image.save(format!("final-img-{}-{}.jpg", seed, count)).unwrap();
                         //  count += 1;
                     },
