@@ -269,7 +269,7 @@ async fn connect_nats() -> Connection {
                 // }
                 println!("End of callbacks");
                 if got_snapshot {
-                    return Ok(gst::FlowReturn::Eos);
+                    return Err(gst::FlowError::Eos);
                 } else {
                     Ok(gst::FlowSuccess::Ok)
                 }
