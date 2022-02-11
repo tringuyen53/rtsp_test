@@ -270,8 +270,8 @@ async fn connect_nats() -> Connection {
                     drop(sample);
                 // }
                 // println!("End of callbacks");
-                Ok(gst::FlowSuccess::Ok)
-                // Err(gst::FlowError::Eos)
+                // Ok(gst::FlowSuccess::Ok)
+                Err(gst::FlowError::Eos)
             })
             .build(),
     );
@@ -281,7 +281,7 @@ async fn connect_nats() -> Connection {
 
 fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Result<(), Error> {
     println!("Start main loop");
-    pipeline.set_state(gst::State::Playing)?;
+    pipeline.set_state(gst::State::Paused)?;
 
     let bus = pipeline
         .bus()
@@ -296,7 +296,7 @@ println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
 
         match msg.view() {
             MessageView::Eos(..) => {
-                pipeline.set_state(gst::State::Null)?;
+                // pipeline.set_state(gst::State::Null)?;
                 println!("Got Eos message, done");
                 break;
             },
@@ -439,6 +439,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let mut rng = rand::thread_rng();                
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
+let is_frame_getting = is_frame_getting.clone();
                 rt.spawn_blocking( move || {  
                   create_pipeline(message.id, message.url, message.client, is_frame_getting.clone()).and_then(|pipeline| main_loop(pipeline, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
