@@ -34,6 +34,7 @@ use async_std::task;
 use fast_image_resize as fr;
 use std::io::BufWriter;
 use std::num::NonZeroU32;
+use std::sync::{Arc, Mutex};
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
