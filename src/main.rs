@@ -269,7 +269,7 @@ async fn connect_nats() -> Connection {
                 // }
                 println!("End of callbacks");
                 if got_snapshot {
-                    return Ok(gst::FlowError::Eos);
+                    return Ok(gst::FlowReturn::Eos);
                 } else {
                     Ok(gst::FlowSuccess::Ok)
                 }
@@ -297,6 +297,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
 
         match msg.view() {
             MessageView::Eos(..) => {
+                pipeline.set_state(gst::State::Null)?;
                 println!("Got Eos message, done");
                 break;
             },
