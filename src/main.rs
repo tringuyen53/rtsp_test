@@ -289,6 +289,7 @@ fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Re
 
 //    println!("Bus: {:?}", bus);
 println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
+let mut seeked = false;
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         // println!("In loop msg: {:?}", msg);
