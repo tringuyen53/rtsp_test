@@ -128,8 +128,7 @@ async fn connect_nats() -> Connection {
         //        println!("Buffer {:?}", buffer);
         if got_snapshot {
             println!("stop pipeline");
-            pipeline.set_state(gst::State::Paused);
-            return Err(gst::FlowError::Eos);
+            // return Err(gst::FlowError::Eos);
         }
         got_snapshot = true;
 
@@ -268,7 +267,12 @@ async fn connect_nats() -> Connection {
                     drop(buffer);
                     drop(sample);
                 // }
-                Ok(gst::FlowSuccess::Ok)
+                println!("End of callbacks");
+                if got_snapshot {
+                    return Ok(gst::FlowError::Eos);
+                } else {
+                    Ok(gst::FlowSuccess::Ok)
+                }
                 // Err(gst::FlowError::Eos)
             })
             .build(),
