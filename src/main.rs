@@ -130,7 +130,7 @@ async fn connect_nats() -> Connection {
         if got_snapshot {
             println!("stop pipeline");
             *is_frame_getting.lock().unwrap() = true;
-            return Err(gst::FlowError::Eos);
+            // return Err(gst::FlowError::Eos);
         }
         
         got_snapshot = true;
