@@ -281,7 +281,7 @@ async fn connect_nats() -> Connection {
 
 fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Result<(), Error> {
     println!("Start main loop");
-    pipeline.set_state(gst::State::Paused)?;
+    pipeline.set_state(gst::State::Playing)?;
 
     let bus = pipeline
         .bus()
