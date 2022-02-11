@@ -71,7 +71,7 @@ async fn connect_nats() -> Connection {
         .unwrap()
 }
 
- fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(id: String, uri: String, client: Connection, is_frame_getting: Arc<Mutex<bool>>,) -> Result<gst::Pipeline, Error> {
     // let client = task::block_on(connect_nats());
     gst::init()?;
 
@@ -128,6 +128,7 @@ async fn connect_nats() -> Connection {
         //        println!("Buffer {:?}", buffer);
         if got_snapshot {
             println!("stop pipeline");
+            *is_frame_getting.lock().unwrap() = true;
             return Err(gst::FlowError::Eos);
         }
         
@@ -277,7 +278,7 @@ async fn connect_nats() -> Connection {
     Ok(pipeline)
 }
 
-fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
+fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Result<(), Error> {
     println!("Start main loop");
     pipeline.set_state(gst::State::Playing)?;
 
@@ -286,6 +287,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
         .expect("Pipeline without bus. Shouldn't happen!");
 
 //    println!("Bus: {:?}", bus);
+println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         println!("In loop msg: {:?}", msg);
@@ -314,6 +316,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
             _ => (),
         }
     }
+    println!("Main loop break");
 
     pipeline.set_state(gst::State::Null)?;
 
@@ -428,6 +431,7 @@ async fn main() {
 async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     let rt = tokio::runtime::Runtime::new().unwrap();
     //let mut rng = rand::thread_rng();
+    let is_frame_getting = Arc::new(Mutex::new(false));
     loop {
         MessageHandler::new(ctx.recv().await?)
             .on_tell(|message: RTPMessage, _| {
@@ -435,7 +439,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.id, message.url, message.client).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone()).and_then(|pipeline| main_loop(pipeline, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
