@@ -127,13 +127,11 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-        if got_snapshot {
+        if count == 5 {
             println!("stop pipeline");
             *is_frame_getting.lock().unwrap() = true;
             // return Err(gst::FlowError::Eos);
         }
-        
-        got_snapshot = true;
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -248,7 +246,7 @@ async fn connect_nats() -> Connection {
                  Ok(image) => {
                         println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
                          image.save(format!("final-img-{}-{}.jpg", id, count)).unwrap();
-                        //  count += 1;
+                         count += 1;
                     },
                  Err(e) => {
 			println!("final load image error: {:?}", e);
@@ -295,6 +293,10 @@ let mut seeked = false;
         // println!("In loop msg: {:?}", msg);
         use gst::MessageView;
         println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
+        if *is_frame_getting.lock().unwrap() {
+            println!("Gudbaiiiiii");
+            break;
+        }
         match msg.view() {
             // MessageView::AsyncDone(..) => {
             //     if !seeked {
