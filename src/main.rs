@@ -291,7 +291,10 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
         use gst::MessageView;
 
         match msg.view() {
-            MessageView::Eos(..) => break,
+            MessageView::Eos(..) => {
+                println!("Got Eos message, done");
+                break;
+            },
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
                 println!("Error: {:?}",err.error());
