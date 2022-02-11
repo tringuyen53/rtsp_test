@@ -270,8 +270,8 @@ async fn connect_nats() -> Connection {
                     drop(sample);
                 // }
                 // println!("End of callbacks");
-                // Ok(gst::FlowSuccess::Ok)
-                Err(gst::FlowError::Eos)
+                Ok(gst::FlowSuccess::Ok)
+                // Err(gst::FlowError::Eos)
             })
             .build(),
     );
@@ -291,7 +291,7 @@ fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Re
 println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
-        println!("In loop msg: {:?}", msg);
+        // println!("In loop msg: {:?}", msg);
         use gst::MessageView;
 
         match msg.view() {
