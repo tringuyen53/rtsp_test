@@ -294,7 +294,6 @@ let mut seeked = false;
         use gst::MessageView;
         println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         if !*is_frame_getting.lock().unwrap() {
-            pipeline.set_state(gst::State::Null)?;
             println!("Gudbaiiiiii");
             break;
         }
