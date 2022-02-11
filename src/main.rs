@@ -114,7 +114,7 @@ async fn connect_nats() -> Connection {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-               println!("Sample: {:?}", sample);
+            //    println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
@@ -295,7 +295,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
 //    println!("Bus: {:?}", bus);
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
-        // println!("In loop msg: {:?}", msg);
+        println!("In loop msg: {:?}", msg);
         use gst::MessageView;
 
         match msg.view() {
