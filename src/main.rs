@@ -267,8 +267,8 @@ async fn connect_nats() -> Connection {
                     drop(buffer);
                     drop(sample);
                 // }
-                println!("End of callbacks");
-                Err(gst::FlowError::Eos)
+                // println!("End of callbacks");
+                Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Eos)
             })
             .build(),
