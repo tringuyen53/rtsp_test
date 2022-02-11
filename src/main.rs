@@ -128,9 +128,9 @@ async fn connect_nats() -> Connection {
         //        println!("Buffer {:?}", buffer);
         if got_snapshot {
             println!("stop pipeline");
-            // return Err(gst::FlowError::Eos);
+            return Err(gst::FlowError::Error);
         }
-        got_snapshot = true;
+        
 
 
                 let map = buffer.map_readable().map_err(|_| {
@@ -269,9 +269,11 @@ async fn connect_nats() -> Connection {
                 // }
                 println!("End of callbacks");
                 if got_snapshot {
-                    appsink.set_state(gst::State::Null);
+                    println!("got snapshot");
+                    appsink.set_state(gst::State::Paused);
                     return Err(gst::FlowError::Eos);
                 } else {
+                    got_snapshot = true;
                     Ok(gst::FlowSuccess::Ok)
                 }
                 // Err(gst::FlowError::Eos)
