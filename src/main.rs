@@ -129,7 +129,7 @@ async fn connect_nats() -> Connection {
         //        println!("Buffer {:?}", buffer);
         if count == 5 {
             println!("stop pipeline");
-            *is_frame_getting.lock().unwrap() = true;
+            *is_frame_getting.lock().unwrap() = false;
             // return Err(gst::FlowError::Eos);
         }
 
@@ -293,7 +293,8 @@ let mut seeked = false;
         // println!("In loop msg: {:?}", msg);
         use gst::MessageView;
         println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
-        if *is_frame_getting.lock().unwrap() {
+        if !*is_frame_getting.lock().unwrap() {
+            pipeline.set_state(gst::State::Null)?;
             println!("Gudbaiiiiii");
             break;
         }
@@ -453,7 +454,7 @@ async fn main() {
 async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     let rt = tokio::runtime::Runtime::new().unwrap();
     //let mut rng = rand::thread_rng();
-    let is_frame_getting = Arc::new(Mutex::new(false));
+    let is_frame_getting = Arc::new(Mutex::new(true));
     loop {
         MessageHandler::new(ctx.recv().await?)
             .on_tell(|message: RTPMessage, _| {
