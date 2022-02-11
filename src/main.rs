@@ -270,8 +270,8 @@ async fn connect_nats() -> Connection {
                     drop(sample);
                 // }
                 // println!("End of callbacks");
-                // Ok(gst::FlowSuccess::Ok)
-                Err(gst::FlowError::Eos)
+                Ok(gst::FlowSuccess::Ok)
+                // Err(gst::FlowError::Eos)
             })
             .build(),
     );
@@ -296,24 +296,24 @@ let mut seeked = false;
         use gst::MessageView;
 
         match msg.view() {
-            MessageView::AsyncDone(..) => {
-                if !seeked {
-                    // AsyncDone means that the pipeline has started now and that we can seek
-                    println!("Got AsyncDone message, seeking to {}s", 4);
+            // MessageView::AsyncDone(..) => {
+            //     if !seeked {
+            //         // AsyncDone means that the pipeline has started now and that we can seek
+            //         println!("Got AsyncDone message, seeking to {}s", 4);
 
-                    if pipeline
-                        .seek_simple(gst::SeekFlags::FLUSH, 4 * gst::ClockTime::SECOND)
-                        .is_err()
-                    {
-                        println!("Failed to seek, taking first frame");
-                    }
+            //         if pipeline
+            //             .seek_simple(gst::SeekFlags::FLUSH, 4 * gst::ClockTime::SECOND)
+            //             .is_err()
+            //         {
+            //             println!("Failed to seek, taking first frame");
+            //         }
 
-                    pipeline.set_state(gst::State::Playing)?;
-                    seeked = true;
-                } else {
-                    println!("Got second AsyncDone message, seek finished");
-                }
-            },
+            //         pipeline.set_state(gst::State::Playing)?;
+            //         seeked = true;
+            //     } else {
+            //         println!("Got second AsyncDone message, seek finished");
+            //     }
+            // },
             MessageView::Eos(..) => {
                 // pipeline.set_state(gst::State::Null)?;
                 println!("Got Eos message, done");
