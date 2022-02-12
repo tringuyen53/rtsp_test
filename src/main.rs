@@ -260,7 +260,7 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                        println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
+                        // println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
                         //  image.save(format!("final-img-{}-{}.jpg", id, count)).unwrap();
                         //  count += 1;
                     },
@@ -308,7 +308,7 @@ let mut seeked = false;
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         // println!("In loop msg: {:?}", msg);
         use gst::MessageView;
-        println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
+        // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         if !*is_frame_getting.lock().unwrap() {
             println!("Gudbaiiiiii");
             break;
