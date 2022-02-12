@@ -171,7 +171,7 @@ async fn connect_nats() -> Connection {
                 //     },
                 // };
 
-                let caps = samples.caps().expect("Sample without caps");
+                let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
                 println!("Info: {:?}", info);
 
