@@ -171,6 +171,22 @@ async fn connect_nats() -> Connection {
                 //     },
                 // };
 
+                let caps = samples.caps().expect("Sample without caps");
+                let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                println!("Info: {:?}", info);
+
+                // let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
+                //     .map_err(|_| {
+                //         element_error!(
+                //             appsink,
+                //             gst::ResourceError::Failed,
+                //             ("Failed to map buffer readable")
+                //         );
+
+                //         gst::FlowError::Error
+                //     })?;
+
+
                 let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 let new_image = match new_image { 
                     Ok(image) => {
