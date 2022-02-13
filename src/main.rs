@@ -262,7 +262,7 @@ async fn connect_nats() -> Connection {
                  Ok(image) => {
                         // println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
                         //  image.save(format!("final-img-{}-{}.jpg", id, count)).unwrap();
-                        //  count += 1;
+                         count += 1;
                     },
                  Err(e) => {
 			println!("final load image error: {:?}", e);
