@@ -127,11 +127,11 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-        // if count == 5 {
-        //     println!("stop pipeline");
-        //     *is_frame_getting.lock().unwrap() = false;
-        //     // return Err(gst::FlowError::Eos);
-        // }
+        if count == 1 {
+            println!("stop pipeline");
+            *is_frame_getting.lock().unwrap() = false;
+            // return Err(gst::FlowError::Eos);
+        }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -289,7 +289,7 @@ async fn connect_nats() -> Connection {
             })
             .build(),
     );
-
+    println!("End Of Pipeline");
     Ok(pipeline)
 }
 
@@ -375,17 +375,17 @@ async fn main() {
         // "rtsp://10.50.13.237/1/h264major",
         // "rtsp://10.50.13.238/1/h264major",
         // "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
         "rtsp://10.50.13.241/1/h264major",
         // "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
-        "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.248/1/h264major",
-        "rtsp://10.50.13.249/1/h264major",
-        "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
-        "rtsp://10.50.13.254/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.244/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.248/1/h264major",
+        // "rtsp://10.50.13.249/1/h264major",
+        // "rtsp://10.50.13.252/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.13.254/1/h264major",
     ];
 
     Bastion::init();
@@ -409,17 +409,17 @@ async fn main() {
         // 237, 
         // 238, 
         // 239, 
-        240,
+        // 240,
         241,
         // 242, 
-        243, 
-        244, 
-        245, 
-        248, 
-        249, 
-        252, 
-        253, 
-        254,
+        // 243, 
+        // 244, 
+        // 245, 
+        // 248, 
+        // 249, 
+        // 252, 
+        // 253, 
+        // 254,
     ];
 
     for ip in &cam_ip {
