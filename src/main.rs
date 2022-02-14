@@ -492,7 +492,11 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let mut rng = rand::thread_rng();                
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
-let is_frame_getting = is_frame_getting.clone();
+    let is_frame_getting = is_frame_getting.clone();
+    let is_record = is_record.clone();
+    let is_live = is_live.clone();
+    let width = width.clone();
+    let height = height.clone();
                 rt.spawn_blocking( move || {  
                   create_pipeline(message.id, message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
