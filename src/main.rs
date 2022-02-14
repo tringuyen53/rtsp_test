@@ -263,6 +263,7 @@ async fn connect_nats() -> Connection {
                 }
                 Err(_) => unreachable!(),
             };
+            count += 1;
 
         //      let img_result = 
         //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
