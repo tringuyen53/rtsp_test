@@ -135,11 +135,11 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-        // if count == 1 {
-        //     println!("stop pipeline");
-        //     *is_frame_getting.lock().unwrap() = false;
-        //     // return Err(gst::FlowError::Eos);
-        // }
+        if count == 9 {
+            println!("stop pipeline");
+            *is_frame_getting.lock().unwrap() = false;
+            return Err(gst::FlowError::Eos);
+        }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -319,6 +319,7 @@ let mut seeked = false;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         if !*is_frame_getting.lock().unwrap() {
             println!("Gudbaiiiiii");
+            println!("Arc counter: {}", Arc::strong_count(&is_frame_getting));
             break;
         }
         match msg.view() {
