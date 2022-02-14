@@ -138,7 +138,7 @@ async fn connect_nats() -> Connection {
         if count == 9 {
             println!("stop pipeline");
             *is_frame_getting.lock().unwrap() = false;
-            drop(is_frame_getting.lock().unwrap());
+            // drop(is_frame_getting.lock().unwrap());
             return Err(gst::FlowError::Eos);
         }
 
