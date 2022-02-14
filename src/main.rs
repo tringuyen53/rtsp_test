@@ -35,6 +35,7 @@ use fast_image_resize as fr;
 use std::io::BufWriter;
 use std::num::NonZeroU32;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 // #[path = "../examples-common.rs"]
 // mod examples_common;
 
@@ -72,7 +73,10 @@ async fn connect_nats() -> Connection {
         .unwrap()
 }
 
- fn create_pipeline(id: String, uri: String, client: Connection, is_frame_getting: Arc<Mutex<bool>>,) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(id: String, uri: String, client: Connection, is_frame_getting: Arc<Mutex<bool>>,is_record: Arc<Mutex<bool>>,
+    is_live: Arc<Mutex<bool>>,
+    width: Arc<Mutex<usize>>,
+    height: Arc<Mutex<usize>>,) -> Result<gst::Pipeline, Error> {
     // let client = task::block_on(connect_nats());
     gst::init()?;
 
@@ -113,6 +117,10 @@ async fn connect_nats() -> Connection {
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
+                let is_live_bool = *is_live.lock().unwrap();
+                let is_record_bool = *is_record.lock().unwrap();
+                let frame_width = *width.lock().unwrap();
+                let frame_height = *height.lock().unwrap();
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
             //    println!("Sample: {:?}", sample);
@@ -127,11 +135,11 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-        if count == 1 {
-            println!("stop pipeline");
-            *is_frame_getting.lock().unwrap() = false;
-            // return Err(gst::FlowError::Eos);
-        }
+        // if count == 1 {
+        //     println!("stop pipeline");
+        //     *is_frame_getting.lock().unwrap() = false;
+        //     // return Err(gst::FlowError::Eos);
+        // }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -173,7 +181,7 @@ async fn connect_nats() -> Connection {
 
                 let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
-                println!("Info: {:?}", info);
+                // println!("Info: {:?}", info);
 
                 // let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
                 //     .map_err(|_| {
@@ -373,19 +381,21 @@ async fn main() {
         // "rtsp://10.50.13.235/1/h264major",
         // "rtsp://10.50.13.236/1/h264major",
         // "rtsp://10.50.13.237/1/h264major",
-        // "rtsp://10.50.13.238/1/h264major",
-        // "rtsp://10.50.13.239/1/h264major",
-        // "rtsp://10.50.13.240/1/h264major",
+        "rtsp://10.50.13.238/1/h264major",
+        "rtsp://10.50.13.239/1/h264major",
+        "rtsp://10.50.13.240/1/h264major",
         "rtsp://10.50.13.241/1/h264major",
-        // "rtsp://10.50.13.242/1/h264major",
-        // "rtsp://10.50.13.243/1/h264major",
-        // "rtsp://10.50.13.244/1/h264major",
-        // "rtsp://10.50.13.245/1/h264major",
-        // "rtsp://10.50.13.248/1/h264major",
-        // "rtsp://10.50.13.249/1/h264major",
-        // "rtsp://10.50.13.252/1/h264major",
-        // "rtsp://10.50.13.253/1/h264major",
-        // "rtsp://10.50.13.254/1/h264major",
+        "rtsp://10.50.13.242/1/h264major",
+        "rtsp://10.50.13.243/1/h264major",
+        "rtsp://10.50.13.244/1/h264major",
+        "rtsp://10.50.13.245/1/h264major",
+        "rtsp://10.50.13.248/1/h264major",
+        "rtsp://10.50.13.249/1/h264major",
+        "rtsp://10.50.13.250/1/h264major",
+        "rtsp://10.50.13.251/1/h264major",
+        "rtsp://10.50.13.252/1/h264major",
+        "rtsp://10.50.13.253/1/h264major",
+        "rtsp://10.50.13.254/1/h264major",
     ];
 
     Bastion::init();
@@ -407,19 +417,21 @@ async fn main() {
         // 235, 
         // 236, 
         // 237, 
-        // 238, 
-        // 239, 
-        // 240,
+        238, 
+        239, 
+        240,
         241,
-        // 242, 
-        // 243, 
-        // 244, 
-        // 245, 
-        // 248, 
-        // 249, 
-        // 252, 
-        // 253, 
-        // 254,
+        242, 
+        243, 
+        244, 
+        245, 
+        248, 
+        249,
+        250, 
+        251,
+        252, 
+        253, 
+        254,
     ];
 
     for ip in &cam_ip {
@@ -470,6 +482,10 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
     let rt = tokio::runtime::Runtime::new().unwrap();
     //let mut rng = rand::thread_rng();
     let is_frame_getting = Arc::new(Mutex::new(true));
+    let is_record = Arc::new(Mutex::new(false));
+    let is_live = Arc::new(Mutex::new(false));
+    let width = Arc::new(Mutex::new(720));
+    let height = Arc::new(Mutex::new(480));
     loop {
         MessageHandler::new(ctx.recv().await?)
             .on_tell(|message: RTPMessage, _| {
@@ -478,7 +494,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //println!("spawn new actor: {:?} - {:?}", message, n1);
 let is_frame_getting = is_frame_getting.clone();
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone()).and_then(|pipeline| main_loop(pipeline, is_frame_getting.clone()));
+                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
