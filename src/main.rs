@@ -320,6 +320,8 @@ let mut seeked = false;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         if !*is_frame_getting.lock().unwrap() {
             println!("Gudbaiiiiii");
+            drop(is_frame_getting.lock().unwrap());
+            drop(is_frame_getting);
             println!("Arc counter: {}", Arc::strong_count(&is_frame_getting));
             break;
         }
