@@ -249,7 +249,7 @@ async fn connect_nats() -> Connection {
                     let mut dst_view = dst_image.view_mut();
 
                     let mut resizer = fr::Resizer::new(
-                        fr::ResizeAlg::Convolution(fr::FilterType::Lanczos3)
+                        fr::ResizeAlg::Convolution(fr::FilterType::CatmullRom)
                     );
 
                     resizer.resize(&src_image.view(), &mut dst_view).unwrap();
@@ -264,19 +264,19 @@ async fn connect_nats() -> Connection {
                 Err(_) => unreachable!(),
             };
 
-             let img_result = 
-                 image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
-             match img_result {
-                 Ok(image) => {
-                        // println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
-                        //  image.save(format!("final-img-{}-{}.jpg", id, count)).unwrap();
-                         count += 1;
-                    },
-                 Err(e) => {
-			println!("final load image error: {:?}", e);
-			()
-		},
-             };
+        //      let img_result = 
+        //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
+        //      match img_result {
+        //          Ok(image) => {
+        //                 // println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
+        //                 //  image.save(format!("final-img-{}-{}.jpg", id, count)).unwrap();
+        //                  count += 1;
+        //             },
+        //          Err(e) => {
+		// 	println!("final load image error: {:?}", e);
+		// 	()
+		// },
+        //      };
              
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
