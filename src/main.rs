@@ -113,8 +113,8 @@ async fn connect_nats() -> Connection {
     // let src = gst::ElementFactory::make("rtspsrc", None)
     //     .map_err(|_| MissingElement("rtspsrc"))?;
     // src.set_property("location", &uri);
-    let src = gst::ElementFactory::make("audiotestsrc", None)
-        .map_err(|_| MissingElement("audiotestsrc"))?;
+    let src = gst::ElementFactory::make("videotestsrc", None)
+        .map_err(|_| MissingElement("videotestsrc"))?;
 
     // let rtph264depay = gst::ElementFactory::make("rtph264depay", None)
     //     .map_err(|_| MissingElement("rtph264depay"))?;
