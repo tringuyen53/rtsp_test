@@ -110,9 +110,12 @@ async fn connect_nats() -> Connection {
     //     .expect("Sink element is expected to be an appsink!");
 
     let pipeline = gst::Pipeline::new(None);
-    let src = gst::ElementFactory::make("rtspsrc", None)
-        .map_err(|_| MissingElement("rtspsrc"))?;
-    src.set_property("location", &uri);
+    // let src = gst::ElementFactory::make("rtspsrc", None)
+    //     .map_err(|_| MissingElement("rtspsrc"))?;
+    // src.set_property("location", &uri);
+    let src = gst::ElementFactory::make("audiotestsrc", None)
+        .map_err(|_| MissingElement("audiotestsrc"))?;
+
     // let rtph264depay = gst::ElementFactory::make("rtph264depay", None)
     //     .map_err(|_| MissingElement("rtph264depay"))?;
     // let queue = gst::ElementFactory::make("queue", Some("queue"))
@@ -136,14 +139,15 @@ async fn connect_nats() -> Connection {
     
     
     let sink = gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
-    sink.set_property("max-buffer", 100.to_value());
-    sink.set_property("emit-signals", false);
-    sink.set_property("dropr", true);
+    // sink.set_property("max-buffer", 100.to_value());
+    // sink.set_property("emit-signals", false);
+    // sink.set_property("drop", true);
     println!("Before add_many");
     // pipeline.add_many(&[&src, &rtph264depay, &queue, &h264parse, &queue_2, &vaapih264dec, &videorate, &queue_3, &vaapipostproc, &vaapijpegenc, &sink])?;
     pipeline.add_many(&[&src, &sink])?;
     println!("After add_many");
-    gst::Element::link_many(&[&src, &sink])?;
+    // gst::Element::link_many(&[&src, &sink])?;
+    src.link(&sink)?;
     println!("pipeline: {:?} - {:?}", uri, pipeline);
 
     let appsink = sink
