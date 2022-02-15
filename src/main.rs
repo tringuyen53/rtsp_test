@@ -264,7 +264,7 @@ async fn connect_nats() -> Connection {
                 }
                 Err(_) => unreachable!(),
             };
-            println!("cam_id: {:?} - End of scale: {:?}", id, std::time::now());
+            println!("cam_id: {:?} - End of scale: {:?}", id, std::time::Instant::now());
             count += 1;
 
         //      let img_result = 
