@@ -480,7 +480,7 @@ async fn main() {
 // }
 
 async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    // let rt = tokio::runtime::Runtime::new().unwrap();
     //let mut rng = rand::thread_rng();
     let is_frame_getting = Arc::new(Mutex::new(true));
     let is_record = Arc::new(Mutex::new(false));
@@ -493,6 +493,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let mut rng = rand::thread_rng();                
 //let n1: u8 = rng.gen();
 println!("spawn new actor: {:?}", message.id);
+let rt = tokio::runtime::Runtime::new().unwrap();
     let is_frame_getting = is_frame_getting.clone();
     let is_record = is_record.clone();
     let is_live = is_live.clone();
