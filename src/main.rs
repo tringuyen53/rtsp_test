@@ -206,7 +206,7 @@ async fn connect_nats() -> Connection {
                     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 match origin_img_result {
                     Ok(image) => {
-                            image.save(format!("origin-img-{}-{}.jpg", seed, count)).unwrap();
+                            image.save(format!("origin-img-{}-{}.jpg", id, count)).unwrap();
                         //  count += 1;
                     },
                     Err(e) => {
