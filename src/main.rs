@@ -159,9 +159,9 @@ async fn connect_nats() -> Connection {
     // }
     println!("pipeline: {:?} - {:?}", uri, pipeline);
 
-    let appsink = sink
-        .dynamic_cast::<gst_app::AppSink>()
-        .expect("Sink element is expected to be an appsink!");
+    // let appsink = sink
+    //     .dynamic_cast::<gst_app::AppSink>()
+    //     .expect("Sink element is expected to be an appsink!");
 
 
     let mut count = 0;
