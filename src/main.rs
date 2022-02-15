@@ -670,8 +670,9 @@ println!("spawn new actor: {:?}", message.id);
     let is_live = is_live.clone();
     let width = width.clone();
     let height = height.clone();
+    let id_2 = message.id.clone();
                rt.spawn( async move {  
-                  create_pipeline(message.id.clone(), message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, message.id, is_frame_getting.clone()));
+                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, id_2, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
