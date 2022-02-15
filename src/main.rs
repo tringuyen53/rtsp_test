@@ -503,8 +503,8 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
-    handle.await?;
-    println!("Arc counter: {}", Arc::strong_count(&is_frame_getting));
+    // handle.await?;
+    // println!("Arc counter: {}", Arc::strong_count(&is_frame_getting));
             })
             .on_fallback(|unknown, _sender_addr| {
                 println!("unknown");
