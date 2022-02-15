@@ -475,7 +475,7 @@ async fn connect_nats() -> Connection {
     Ok(pipeline)
 }
 
-fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Result<(), Error> {
+fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bool>>,) -> Result<(), Error> {
     println!("Start main loop");
     pipeline.set_state(gst::State::Playing)?;
 
@@ -524,7 +524,7 @@ let mut seeked = false;
             },
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
-                println!("Error: {:?}",err.error());
+                println!("{:?} - Error: {:?}",id, err.error());
                 return Err(ErrorMessage {
                     src: msg
                         .src()
@@ -671,7 +671,7 @@ println!("spawn new actor: {:?}", message.id);
     let width = width.clone();
     let height = height.clone();
                rt.spawn( async move {  
-                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, is_frame_getting.clone()));
+                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, message.id, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
