@@ -319,7 +319,7 @@ let mut seeked = false;
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         // println!("In loop msg: {:?}", msg);
         use gst::MessageView;
-        println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
+        // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         if !*is_frame_getting.lock().unwrap() {
             println!("Gudbaiiiiii");
             // drop(is_frame_getting.lock().unwrap());
