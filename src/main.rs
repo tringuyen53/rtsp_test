@@ -327,7 +327,7 @@ async fn connect_nats() -> Connection {
             //     }
             //     Err(_) => unreachable!(),
             // };
-            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
+            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id_1, std::time::SystemTime::now());
             count += 1;
 
         //      let img_result = 
@@ -435,7 +435,7 @@ async fn connect_nats() -> Connection {
                 let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
                 // println!("Info: {:?}", info);
-            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
+            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id_2, std::time::SystemTime::now());
             count += 1;
 
         //      let img_result = 
