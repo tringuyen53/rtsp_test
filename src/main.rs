@@ -264,7 +264,7 @@ async fn connect_nats() -> Connection {
                 }
                 Err(_) => unreachable!(),
             };
-            println!("cam_id: {:?} - End of scale: {:?}", id, std::time::Instant::now());
+            println!("cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
             count += 1;
 
         //      let img_result = 
@@ -381,7 +381,7 @@ async fn main() {
 
     let urls = [
         // "rtsp://10.50.29.36/1/h264major",
-        // "rtsp://10.50.31.171/1/h264major",
+        "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.31.172/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
         // "rtsp://10.50.13.233/1/h264major",
@@ -410,7 +410,7 @@ async fn main() {
 
     let cam_ip = vec![
         // 36,
-        // 171,
+        171,
         // 172, 
         // 231, 
         // 233, 
