@@ -95,7 +95,7 @@ async fn connect_nats() -> Connection {
     //  ))?
 
      let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! application/x-rtp, media=video, encoding-name=H264! rtph264depay ! queue leaky=2 ! h264parse ! tee name=thumbnail_video ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! vaapijpegenc ! appsink name=app1 max-buffers=100 emit-signals=false drop=true    thumbnail_video. ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc! appsink name=app2 max-buffers=100 emit-signals=false drop=true" ,
+        "rtspsrc location={} ! application/x-rtp, media=video, encoding-name=H264! rtph264depay ! queue leaky=0 ! h264parse ! tee name=thumbnail_video ! queue leaky=0 ! vaapih264dec ! videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! vaapijpegenc ! appsink name=app1 max-buffers=100 emit-signals=false drop=true    thumbnail_video. ! queue leaky=0 ! vaapih264dec ! videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc! appsink name=app2 max-buffers=100 emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
