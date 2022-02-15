@@ -109,7 +109,7 @@ async fn connect_nats() -> Connection {
     //     .downcast::<gst_app::AppSink>()
     //     .expect("Sink element is expected to be an appsink!");
 
-    let pipeline = gst::Pipeline::new(None).downcast::<gst::Pipeline>().expect("Expected a gst::Pipeline");
+    let pipeline = gst::Pipeline::new(None);
     let src = gst::ElementFactory::make("rtspsrc", None)
         .map_err(|_| MissingElement("rtspsrc"))?;
     src.set_property("location", &uri);
