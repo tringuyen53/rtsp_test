@@ -135,7 +135,9 @@ async fn connect_nats() -> Connection {
         .map_err(|_| MissingElement("vaapijpegenc"))?;
     
     let sink = gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
+    println!("Before add_many");
     pipeline.add_many(&[&src, &rtph264depay, &queue, &h264parse, &queue_2, &vaapih264dec, &videorate, &queue_3, &vaapipostproc, &vaapijpegenc, &sink])?;
+    println!("After add_many");
     src.link(&sink)?;
     println!("pipeline: {:?} - {:?}", uri, pipeline);
 
