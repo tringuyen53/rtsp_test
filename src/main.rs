@@ -178,10 +178,10 @@ async fn connect_nats() -> Connection {
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink_full| {
-                let is_live_bool = *is_live.lock().unwrap();
-                let is_record_bool = *is_record.lock().unwrap();
-                let frame_width = *width.lock().unwrap();
-                let frame_height = *height.lock().unwrap();
+                // let is_live_bool = *is_live.lock().unwrap();
+                // let is_record_bool = *is_record.lock().unwrap();
+                // let frame_width = *width.lock().unwrap();
+                // let frame_height = *height.lock().unwrap();
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink_full.pull_sample().map_err(|_| gst::FlowError::Eos)?;
             //    println!("Sample: {:?}", sample);
@@ -232,7 +232,7 @@ async fn connect_nats() -> Connection {
                     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 match origin_img_result {
                     Ok(image) => {
-                            image.save(format!("full-img-{}-{}.jpg", id, count)).unwrap();
+                            image.save(format!("full-img-{}-{}.jpg", id.clone(), count)).unwrap();
                         //  count += 1;
                     },
                     Err(e) => {
@@ -365,10 +365,10 @@ async fn connect_nats() -> Connection {
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink_thumb| {
-                let is_live_bool = *is_live.lock().unwrap();
-                let is_record_bool = *is_record.lock().unwrap();
-                let frame_width = *width.lock().unwrap();
-                let frame_height = *height.lock().unwrap();
+                // let is_live_bool = *is_live.lock().unwrap();
+                // let is_record_bool = *is_record.lock().unwrap();
+                // let frame_width = *width.lock().unwrap();
+                // let frame_height = *height.lock().unwrap();
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink_thumb.pull_sample().map_err(|_| gst::FlowError::Eos)?;
             //    println!("Sample: {:?}", sample);
@@ -419,7 +419,7 @@ async fn connect_nats() -> Connection {
                     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 match origin_img_result {
                     Ok(image) => {
-                            image.save(format!("thumb-img-{}-{}.jpg", id, count)).unwrap();
+                            image.save(format!("thumb-img-{}-{}.jpg", id.clone(), count)).unwrap();
                         //  count += 1;
                     },
                     Err(e) => {
