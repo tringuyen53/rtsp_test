@@ -177,17 +177,17 @@ async fn connect_nats() -> Connection {
     appsink_full.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
-            .new_sample(move |appsink| {
+            .new_sample(move |appsink_full| {
                 let is_live_bool = *is_live.lock().unwrap();
                 let is_record_bool = *is_record.lock().unwrap();
                 let frame_width = *width.lock().unwrap();
                 let frame_height = *height.lock().unwrap();
                 // Pull the sample in question out of the appsink's buffer.
-                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+                let sample = appsink_full.pull_sample().map_err(|_| gst::FlowError::Eos)?;
             //    println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
-                        appsink,
+                        appsink_full,
                         gst::ResourceError::Failed,
                         ("Failed to get buffer from appsink")
                     );
@@ -205,7 +205,7 @@ async fn connect_nats() -> Connection {
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
-                        appsink,
+                        appsink_full,
                         gst::ResourceError::Failed,
                         ("Failed to map buffer readable")
                     );
@@ -216,7 +216,7 @@ async fn connect_nats() -> Connection {
 
                 let samples = map.as_slice_of::<u8>().map_err(|_| {
                     element_error!(
-                        appsink,
+                        appsink_full,
                         gst::ResourceError::Failed,
                        ("Failed to interprete buffer as S16 PCM")
                     );
@@ -364,17 +364,17 @@ async fn connect_nats() -> Connection {
     appsink_thumb.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
-            .new_sample(move |appsink| {
+            .new_sample(move |appsink_thumb| {
                 let is_live_bool = *is_live.lock().unwrap();
                 let is_record_bool = *is_record.lock().unwrap();
                 let frame_width = *width.lock().unwrap();
                 let frame_height = *height.lock().unwrap();
                 // Pull the sample in question out of the appsink's buffer.
-                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+                let sample = appsink_thumb.pull_sample().map_err(|_| gst::FlowError::Eos)?;
             //    println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
-                        appsink,
+                        appsink_thumb,
                         gst::ResourceError::Failed,
                         ("Failed to get buffer from appsink")
                     );
@@ -392,7 +392,7 @@ async fn connect_nats() -> Connection {
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
-                        appsink,
+                        appsink_thumb,
                         gst::ResourceError::Failed,
                         ("Failed to map buffer readable")
                     );
@@ -403,7 +403,7 @@ async fn connect_nats() -> Connection {
 
                 let samples = map.as_slice_of::<u8>().map_err(|_| {
                     element_error!(
-                        appsink,
+                        appsink_thumb,
                         gst::ResourceError::Failed,
                        ("Failed to interprete buffer as S16 PCM")
                     );
