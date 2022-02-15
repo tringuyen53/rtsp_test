@@ -95,7 +95,7 @@ async fn connect_nats() -> Connection {
     //  ))?
 
      let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! queue leaky=0 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+        "rtspsrc location={} ! application/x-rtp, media=video, encoding-name=H264! rtph264depay ! queue leaky=2 ! h264parse ! tee name=thumbnail_video ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! vaapijpegenc ! appsink name=app1 max-buffers=100 emit-signals=false drop=true    thumbnail_video. ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc! appsink name=app2 max-buffers=100 emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -103,8 +103,14 @@ async fn connect_nats() -> Connection {
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
-    let appsink = pipeline
-        .by_name("sink")
+    let appsink_full = pipeline
+        .by_name("app1")
+        .expect("Sink element not found")
+        .downcast::<gst_app::AppSink>()
+        .expect("Sink element is expected to be an appsink!");
+
+    let appsink_thumb = pipeline
+        .by_name("app2")
         .expect("Sink element not found")
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
@@ -168,7 +174,7 @@ async fn connect_nats() -> Connection {
     let mut got_snapshot = false;
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
-    appsink.set_callbacks(
+    appsink_full.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
@@ -226,7 +232,7 @@ async fn connect_nats() -> Connection {
                     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 match origin_img_result {
                     Ok(image) => {
-                            image.save(format!("origin-img-{}-{}.jpg", id, count)).unwrap();
+                            image.save(format!("full-img-{}-{}.jpg", id, count)).unwrap();
                         //  count += 1;
                     },
                     Err(e) => {
@@ -251,75 +257,181 @@ async fn connect_nats() -> Connection {
                 //     })?;
 
 
-                let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                let new_image = match new_image { 
-                    Ok(image) => {
-                    let width = NonZeroU32::new(image.width()).unwrap();
-                    let height = NonZeroU32::new(image.height()).unwrap();
-                    // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
+            //     let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //     let new_image = match new_image { 
+            //         Ok(image) => {
+            //         let width = NonZeroU32::new(image.width()).unwrap();
+            //         let height = NonZeroU32::new(image.height()).unwrap();
+            //         // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
 
-                    // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
-                    // match test_into_raw_image {
-                    //     Ok(image) => {
-                    //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
-                    //      count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("test load rgb8 image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
+            //         // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
+            //         // match test_into_raw_image {
+            //         //     Ok(image) => {
+            //         //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
+            //         //      count += 1;
+            //         //     },
+            //         //     Err(e) => {
+            //         //         println!("test load rgb8 image error: {:?}", e);
+            //         //         ()
+            //         //     },
+            //         // };
 
-                    let mut src_image = fr::Image::from_vec_u8(
-                        width,
-                        height,
-                        image.to_rgb8().into_raw(),
-                        fr::PixelType::U8x3
-                    ).unwrap();
+            //         let mut src_image = fr::Image::from_vec_u8(
+            //             width,
+            //             height,
+            //             image.to_rgb8().into_raw(),
+            //             fr::PixelType::U8x3
+            //         ).unwrap();
 
-                    // let origin_after_torgba8_img_result = 
-                    // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
-                    // match origin_after_torgba8_img_result {
-                    //     Ok(image) => {
-                    //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
-                    //         //  count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("scaled load image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
+            //         // let origin_after_torgba8_img_result = 
+            //         // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
+            //         // match origin_after_torgba8_img_result {
+            //         //     Ok(image) => {
+            //         //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
+            //         //         //  count += 1;
+            //         //     },
+            //         //     Err(e) => {
+            //         //         println!("scaled load image error: {:?}", e);
+            //         //         ()
+            //         //     },
+            //         // };
 
-                    // let alpha_mul_div = fr::MulDiv::default();
-                    // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+            //         // let alpha_mul_div = fr::MulDiv::default();
+            //         // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
-                    let dst_width = NonZeroU32::new(720).unwrap();
-                    let dst_height = NonZeroU32::new(540).unwrap();
+            //         let dst_width = NonZeroU32::new(720).unwrap();
+            //         let dst_height = NonZeroU32::new(540).unwrap();
 
-                    let mut dst_image = fr::Image::new(
-                        dst_width,
-                        dst_height,
-                        src_image.pixel_type(),
-                    );
+            //         let mut dst_image = fr::Image::new(
+            //             dst_width,
+            //             dst_height,
+            //             src_image.pixel_type(),
+            //         );
 
-                    let mut dst_view = dst_image.view_mut();
+            //         let mut dst_view = dst_image.view_mut();
 
-                    let mut resizer = fr::Resizer::new(
-                        fr::ResizeAlg::Convolution(fr::FilterType::Box)
-                    );
+            //         let mut resizer = fr::Resizer::new(
+            //             fr::ResizeAlg::Convolution(fr::FilterType::Box)
+            //         );
 
-                    resizer.resize(&src_image.view(), &mut dst_view).unwrap();
+            //         resizer.resize(&src_image.view(), &mut dst_view).unwrap();
 
-                    // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+            //         // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
-                    let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
+            //         let mut result_buf = BufWriter::new(Vec::new());
+            //         image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
 
-                    Vec::from(result_buf.into_inner().unwrap())
-                }
-                Err(_) => unreachable!(),
-            };
-            println!("cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
+            //         Vec::from(result_buf.into_inner().unwrap())
+            //     }
+            //     Err(_) => unreachable!(),
+            // };
+            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
+            count += 1;
+
+        //      let img_result = 
+        //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
+        //      match img_result {
+        //          Ok(image) => {
+        //                 // println!("WxH after scale: {:?}x{:?}", image.width(), image.height());
+        //                 //  image.save(format!("final-img-{}-{}.jpg", id, count)).unwrap();
+        //                  count += 1;
+        //             },
+        //          Err(e) => {
+		// 	println!("final load image error: {:?}", e);
+		// 	()
+		// },
+        //      };
+             
+            // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+            // let result = throttle.accept();
+            // if result.is_ok() {
+                    // println!("Throttle START!!");
+                    // count += 1;
+                    // let transcode_actor = Distributor::named("transcode");
+                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                    // let _ = client.publish(TOPIC, samples.to_vec());
+                    drop(samples);
+                    drop(map);
+                    drop(buffer);
+                    drop(sample);
+                // }
+                // println!("End of callbacks");
+                Ok(gst::FlowSuccess::Ok)
+                // Err(gst::FlowError::Eos)
+            })
+            .build(),
+    );
+    appsink_thumb.set_callbacks(
+        gst_app::AppSinkCallbacks::builder()
+            // Add a handler to the "new-sample" signal.
+            .new_sample(move |appsink| {
+                let is_live_bool = *is_live.lock().unwrap();
+                let is_record_bool = *is_record.lock().unwrap();
+                let frame_width = *width.lock().unwrap();
+                let frame_height = *height.lock().unwrap();
+                // Pull the sample in question out of the appsink's buffer.
+                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+            //    println!("Sample: {:?}", sample);
+                let buffer = sample.buffer().ok_or_else(|| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to get buffer from appsink")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+        //        println!("Buffer {:?}", buffer);
+        // if count == 50 {
+        //     println!("stop pipeline");
+        //     *is_frame_getting.lock().unwrap() = false;
+        //     // drop(is_frame_getting.lock().unwrap());
+        //     return Err(gst::FlowError::Eos);
+        // }
+
+                let map = buffer.map_readable().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to map buffer readable")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+  //              println!("xxxxxxxx Map {:?}", map);   
+
+                let samples = map.as_slice_of::<u8>().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                       ("Failed to interprete buffer as S16 PCM")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+                println!("{:?}",samples.len());
+                 //SAVE IMAGE
+                //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
+                //  file.write_all(samples);
+
+                let origin_img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match origin_img_result {
+                    Ok(image) => {
+                            image.save(format!("thumb-img-{}-{}.jpg", id, count)).unwrap();
+                        //  count += 1;
+                    },
+                    Err(e) => {
+                        println!("origin load image error: {:?}", e);
+                        ()
+                    },
+                };
+
+                let caps = sample.caps().expect("Sample without caps");
+                let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                // println!("Info: {:?}", info);
+            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
             count += 1;
 
         //      let img_result = 
@@ -438,18 +550,18 @@ async fn main() {
         // "rtsp://10.50.29.36/1/h264major",
         "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.31.172/1/h264major",
-        "rtsp://10.50.13.231/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
         // "rtsp://10.50.13.234/1/h264major",
         // "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.238/1/h264major",
-        "rtsp://10.50.13.239/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.238/1/h264major",
+        // "rtsp://10.50.13.239/1/h264major",
         // "rtsp://10.50.13.240/1/h264major",
-        "rtsp://10.50.13.241/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.241/1/h264major",
+        // "rtsp://10.50.13.242/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
         // "rtsp://10.50.13.244/1/h264major",
         // "rtsp://10.50.13.245/1/h264major",
         // "rtsp://10.50.13.248/1/h264major",
@@ -467,18 +579,18 @@ async fn main() {
         // 36,
         171,
         // 172, 
-        231, 
-        233, 
+        // 231, 
+        // 233, 
         // 234, 
         // 235, 
-        236, 
-        237, 
-        238, 
-        239, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
         // 240,
-        241,
-        242, 
-        243, 
+        // 241,
+        // 242, 
+        // 243, 
         // 244, 
         // 245, 
         // 248, 
