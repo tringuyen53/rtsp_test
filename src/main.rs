@@ -94,20 +94,55 @@ async fn connect_nats() -> Connection {
     //      uri
     //  ))?
 
-     let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
-        uri
-    ))?
-    .downcast::<gst::Pipeline>()
-    .expect("Expected a gst::Pipeline");
+    //  let pipeline = gst::parse_launch(&format!(
+    //     "rtspsrc location={} ! rtph264depay ! queue leaky=2 ! h264parse ! queue leaky=2 ! vaapih264dec ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! vaapijpegenc ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+    //     uri
+    // ))?
+    // .downcast::<gst::Pipeline>()
+    // .expect("Expected a gst::Pipeline");
 
+    // println!("pipeline: {:?} - {:?}", uri, pipeline);
+    // // Get access to the appsink element.
+    // let appsink = pipeline
+    //     .by_name("sink")
+    //     .expect("Sink element not found")
+    //     .downcast::<gst_app::AppSink>()
+    //     .expect("Sink element is expected to be an appsink!");
+
+    let pipeline = gst::Pipeline::new(None).downcast::<gst::Pipeline>().expect("Expected a gst::Pipeline");
+    let src = gst::ElementFactory::make("rtspsrc", None)
+        .map_err(|_| MissingElement("rtspsrc"))?;
+    src.set_property("location", &uri);
+    let rtph264depay = gst::ElementFactory::make("rtph264depay", None)
+        .map_err(|_| MissingElement("rtph264depay"))?;
+    let queue = gst::ElementFactory::make("queue", Some("queue"))
+        .expect("Could not create queue element.");
+    queue.set_property_from_str("leaky", "upstream");
+    let queue_2 = gst::ElementFactory::make("queue", Some("queue_2"))
+        .expect("Could not create queue element.");
+    queue_2.set_property_from_str("leaky", "upstream");
+    let queue_3 = gst::ElementFactory::make("queue", Some("queue_3"))
+        .map_err(|_| MissingElement("queue"))?;
+    let h264parse = gst::ElementFactory::make("h264parse", None)
+        .map_err(|_| MissingElement("h264parse"))?;
+    let vaapih264dec = gst::ElementFactory::make("vaapih264dec", None)
+        .map_err(|_| MissingElement("vaapih264dec"))?;
+    let videorate = gst::ElementFactory::make("videorate", None)
+        .map_err(|_| MissingElement("videorate"))?;
+    let vaapipostproc = gst::ElementFactory::make("vaapipostproc", None)
+        .map_err(|_| MissingElement("vaapipostproc"))?;
+    let vaapijpegenc = gst::ElementFactory::make("vaapijpegenc", None)
+        .map_err(|_| MissingElement("vaapijpegenc"))?;
+    
+    let sink = gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
+    pipeline.add_many(&[&src, &rtph264depay, &queue, &h264parse, &queue_2, &vaapih264dec, &videorate, &queue_3, &vaapipostproc, &vaapijpegenc, &sink])?;
+    src.link(&sink)?;
     println!("pipeline: {:?} - {:?}", uri, pipeline);
-    // Get access to the appsink element.
-    let appsink = pipeline
-        .by_name("sink")
-        .expect("Sink element not found")
-        .downcast::<gst_app::AppSink>()
+
+    let appsink = sink
+        .dynamic_cast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
+
 
     let mut count = 0;
     let mut got_snapshot = false;
@@ -167,18 +202,18 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                // let origin_img_result = 
-                //     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                // match origin_img_result {
-                //     Ok(image) => {
-                //             image.save(format!("origin-img-{}-{}.jpg", seed, count)).unwrap();
-                //         //  count += 1;
-                //     },
-                //     Err(e) => {
-                //         println!("origin load image error: {:?}", e);
-                //         ()
-                //     },
-                // };
+                let origin_img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match origin_img_result {
+                    Ok(image) => {
+                            image.save(format!("origin-img-{}-{}.jpg", seed, count)).unwrap();
+                        //  count += 1;
+                    },
+                    Err(e) => {
+                        println!("origin load image error: {:?}", e);
+                        ()
+                    },
+                };
 
                 let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
@@ -196,74 +231,74 @@ async fn connect_nats() -> Connection {
                 //     })?;
 
 
-                let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                let new_image = match new_image { 
-                    Ok(image) => {
-                    let width = NonZeroU32::new(image.width()).unwrap();
-                    let height = NonZeroU32::new(image.height()).unwrap();
-                    // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
+            //     let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //     let new_image = match new_image { 
+            //         Ok(image) => {
+            //         let width = NonZeroU32::new(image.width()).unwrap();
+            //         let height = NonZeroU32::new(image.height()).unwrap();
+            //         // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
 
-                    // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
-                    // match test_into_raw_image {
-                    //     Ok(image) => {
-                    //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
-                    //      count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("test load rgb8 image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
+            //         // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
+            //         // match test_into_raw_image {
+            //         //     Ok(image) => {
+            //         //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
+            //         //      count += 1;
+            //         //     },
+            //         //     Err(e) => {
+            //         //         println!("test load rgb8 image error: {:?}", e);
+            //         //         ()
+            //         //     },
+            //         // };
 
-                    let mut src_image = fr::Image::from_vec_u8(
-                        width,
-                        height,
-                        image.to_rgb8().into_raw(),
-                        fr::PixelType::U8x3
-                    ).unwrap();
+            //         let mut src_image = fr::Image::from_vec_u8(
+            //             width,
+            //             height,
+            //             image.to_rgb8().into_raw(),
+            //             fr::PixelType::U8x3
+            //         ).unwrap();
 
-                    // let origin_after_torgba8_img_result = 
-                    // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
-                    // match origin_after_torgba8_img_result {
-                    //     Ok(image) => {
-                    //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
-                    //         //  count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("scaled load image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
+            //         // let origin_after_torgba8_img_result = 
+            //         // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
+            //         // match origin_after_torgba8_img_result {
+            //         //     Ok(image) => {
+            //         //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
+            //         //         //  count += 1;
+            //         //     },
+            //         //     Err(e) => {
+            //         //         println!("scaled load image error: {:?}", e);
+            //         //         ()
+            //         //     },
+            //         // };
 
-                    // let alpha_mul_div = fr::MulDiv::default();
-                    // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+            //         // let alpha_mul_div = fr::MulDiv::default();
+            //         // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
-                    let dst_width = NonZeroU32::new(720).unwrap();
-                    let dst_height = NonZeroU32::new(540).unwrap();
+            //         let dst_width = NonZeroU32::new(720).unwrap();
+            //         let dst_height = NonZeroU32::new(540).unwrap();
 
-                    let mut dst_image = fr::Image::new(
-                        dst_width,
-                        dst_height,
-                        src_image.pixel_type(),
-                    );
+            //         let mut dst_image = fr::Image::new(
+            //             dst_width,
+            //             dst_height,
+            //             src_image.pixel_type(),
+            //         );
 
-                    let mut dst_view = dst_image.view_mut();
+            //         let mut dst_view = dst_image.view_mut();
 
-                    let mut resizer = fr::Resizer::new(
-                        fr::ResizeAlg::Convolution(fr::FilterType::Box)
-                    );
+            //         let mut resizer = fr::Resizer::new(
+            //             fr::ResizeAlg::Convolution(fr::FilterType::Box)
+            //         );
 
-                    resizer.resize(&src_image.view(), &mut dst_view).unwrap();
+            //         resizer.resize(&src_image.view(), &mut dst_view).unwrap();
 
-                    // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+            //         // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
-                    let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
+            //         let mut result_buf = BufWriter::new(Vec::new());
+            //         image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
 
-                    Vec::from(result_buf.into_inner().unwrap())
-                }
-                Err(_) => unreachable!(),
-            };
+            //         Vec::from(result_buf.into_inner().unwrap())
+            //     }
+            //     Err(_) => unreachable!(),
+            // };
             println!("cam_id: {:?} - End of scale: {:?}", id, std::time::SystemTime::now());
             count += 1;
 
@@ -383,16 +418,16 @@ async fn main() {
         // "rtsp://10.50.29.36/1/h264major",
         "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.31.172/1/h264major",
-        "rtsp://10.50.13.231/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
         // "rtsp://10.50.13.234/1/h264major",
         // "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
         // "rtsp://10.50.13.238/1/h264major",
         // "rtsp://10.50.13.239/1/h264major",
         // "rtsp://10.50.13.240/1/h264major",
-        "rtsp://10.50.13.241/1/h264major",
+        // "rtsp://10.50.13.241/1/h264major",
         // "rtsp://10.50.13.242/1/h264major",
         // "rtsp://10.50.13.243/1/h264major",
         // "rtsp://10.50.13.244/1/h264major",
@@ -412,16 +447,16 @@ async fn main() {
         // 36,
         171,
         // 172, 
-        231, 
-        233, 
+        // 231, 
+        // 233, 
         // 234, 
         // 235, 
-        236, 
-        237, 
+        // 236, 
+        // 237, 
         // 238, 
         // 239, 
         // 240,
-        241,
+        // 241,
         // 242, 
         // 243, 
         // 244, 
