@@ -415,7 +415,7 @@ async fn connect_nats() -> Connection {
 
                     gst::FlowError::Error
                 })?;
-                println!("{:?}",samples.len());
+                // println!("{:?}",samples.len());
                  //SAVE IMAGE
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
