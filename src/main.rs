@@ -110,44 +110,52 @@ async fn connect_nats() -> Connection {
     //     .expect("Sink element is expected to be an appsink!");
 
     let pipeline = gst::Pipeline::new(None);
-    // let src = gst::ElementFactory::make("rtspsrc", None)
-    //     .map_err(|_| MissingElement("rtspsrc"))?;
-    // src.set_property("location", &uri);
-    let src = gst::ElementFactory::make("videotestsrc", None)
-        .map_err(|_| MissingElement("videotestsrc"))?;
+    let src = gst::ElementFactory::make("rtspsrc", None)
+        .map_err(|_| MissingElement("rtspsrc"))?;
+    src.set_property("location", &uri);
+    // let src = gst::ElementFactory::make("videotestsrc", None)
+    //     .map_err(|_| MissingElement("videotestsrc"))?;
 
-    // let rtph264depay = gst::ElementFactory::make("rtph264depay", None)
-    //     .map_err(|_| MissingElement("rtph264depay"))?;
-    // let queue = gst::ElementFactory::make("queue", Some("queue"))
-    //     .expect("Could not create queue element.");
-    // queue.set_property_from_str("leaky", "upstream");
-    // let queue_2 = gst::ElementFactory::make("queue", Some("queue_2"))
-    //     .expect("Could not create queue element.");
-    // queue_2.set_property_from_str("leaky", "upstream");
-    // let queue_3 = gst::ElementFactory::make("queue", Some("queue_3"))
-    //     .map_err(|_| MissingElement("queue"))?;
-    // let h264parse = gst::ElementFactory::make("h264parse", None)
-    //     .map_err(|_| MissingElement("h264parse"))?;
-    // let vaapih264dec = gst::ElementFactory::make("vaapih264dec", None)
-    //     .map_err(|_| MissingElement("vaapih264dec"))?;
-    // let videorate = gst::ElementFactory::make("videorate", None)
-    //     .map_err(|_| MissingElement("videorate"))?;
-    // let vaapipostproc = gst::ElementFactory::make("vaapipostproc", None)
-    //     .map_err(|_| MissingElement("vaapipostproc"))?;
-    // let vaapijpegenc = gst::ElementFactory::make("vaapijpegenc", None)
-    //     .map_err(|_| MissingElement("vaapijpegenc"))?;
+    let rtph264depay = gst::ElementFactory::make("rtph264depay", None)
+        .map_err(|_| MissingElement("rtph264depay"))?;
+    let queue = gst::ElementFactory::make("queue", Some("queue"))
+        .expect("Could not create queue element.");
+    queue.set_property_from_str("leaky", "upstream");
+    let queue_2 = gst::ElementFactory::make("queue", Some("queue_2"))
+        .expect("Could not create queue element.");
+    queue_2.set_property_from_str("leaky", "upstream");
+    let queue_3 = gst::ElementFactory::make("queue", Some("queue_3"))
+        .map_err(|_| MissingElement("queue"))?;
+    let h264parse = gst::ElementFactory::make("h264parse", None)
+        .map_err(|_| MissingElement("h264parse"))?;
+    let vaapih264dec = gst::ElementFactory::make("vaapih264dec", None)
+        .map_err(|_| MissingElement("vaapih264dec"))?;
+    let videorate = gst::ElementFactory::make("videorate", None)
+        .map_err(|_| MissingElement("videorate"))?;
+    let vaapipostproc = gst::ElementFactory::make("vaapipostproc", None)
+        .map_err(|_| MissingElement("vaapipostproc"))?;
+    let vaapijpegenc = gst::ElementFactory::make("vaapijpegenc", None)
+        .map_err(|_| MissingElement("vaapijpegenc"))?;
     
     
     let sink = gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
-    // sink.set_property("max-buffer", 100.to_value());
-    // sink.set_property("emit-signals", false);
-    // sink.set_property("drop", true);
+    sink.set_property("max-buffer", 100.to_value());
+    sink.set_property("emit-signals", false);
+    sink.set_property("drop", true);
     println!("Before add_many");
-    // pipeline.add_many(&[&src, &rtph264depay, &queue, &h264parse, &queue_2, &vaapih264dec, &videorate, &queue_3, &vaapipostproc, &vaapijpegenc, &sink])?;
-    pipeline.add_many(&[&src, &sink])?;
+    pipeline.add_many(&[&src, &rtph264depay, &queue, &h264parse, &queue_2, &vaapih264dec, &videorate, &queue_3, &vaapipostproc, &vaapijpegenc, &sink])?;
+    // pipeline.add_many(&[&src, &sink])?;
     println!("After add_many");
     // gst::Element::link_many(&[&src, &sink])?;
-    src.link(&sink)?;
+    let res = src.link(&sink);
+    match res {
+        Ok(()) => {
+            println!("Link success");
+        },
+        Err(e) => {
+            println!("Error: {:?}", e);
+        }
+    }
     println!("pipeline: {:?} - {:?}", uri, pipeline);
 
     let appsink = sink
