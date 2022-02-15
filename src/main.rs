@@ -139,9 +139,9 @@ async fn connect_nats() -> Connection {
     
     
     let sink = gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
-    sink.set_property("max-buffer", 100.to_value());
-    sink.set_property("emit-signals", false);
-    sink.set_property("drop", true);
+    // sink.set_property("max-buffer", 100.to_value());
+    // sink.set_property("emit-signals", false);
+    // sink.set_property("drop", true);
     println!("Before add_many");
     // pipeline.add_many(&[&src, &rtph264depay, &queue, &h264parse, &queue_2, &vaapih264dec, &videorate, &queue_3, &vaapipostproc, &vaapijpegenc, &sink])?;
     pipeline.add_many(&[&src, &sink])?;
