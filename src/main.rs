@@ -553,16 +553,16 @@ async fn main() {
     let urls = [
         // "rtsp://10.50.29.36/1/h264major",
         "rtsp://10.50.31.171/1/h264major",
-        "rtsp://10.50.31.172/1/h264major",
+        // "rtsp://10.50.31.172/1/h264major",
         "rtsp://10.50.13.231/1/h264major",
         "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
+        // "rtsp://10.50.13.234/1/h264major",
         "rtsp://10.50.13.235/1/h264major",
         "rtsp://10.50.13.236/1/h264major",
         "rtsp://10.50.13.237/1/h264major",
         "rtsp://10.50.13.238/1/h264major",
         "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
         "rtsp://10.50.13.241/1/h264major",
         "rtsp://10.50.13.242/1/h264major",
         "rtsp://10.50.13.243/1/h264major",
@@ -582,16 +582,16 @@ async fn main() {
     let cam_ip = vec![
         // 36,
         171,
-        172, 
+        // 172, 
         231, 
         233, 
-        234, 
+        // 234, 
         235, 
         236, 
         237, 
         238, 
         239, 
-        240,
+        // 240,
         241,
         242, 
         243, 
@@ -671,7 +671,7 @@ println!("spawn new actor: {:?}", message.id);
     let width = width.clone();
     let height = height.clone();
                rt.spawn( async move {  
-                  create_pipeline(message.id, message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, message.id, is_frame_getting.clone()));
+                  create_pipeline(message.id.clone(), message.url, message.client, is_frame_getting.clone(), is_record.clone(), is_live.clone(), width.clone(), height.clone()).and_then(|pipeline| main_loop(pipeline, message.id, is_frame_getting.clone()));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
