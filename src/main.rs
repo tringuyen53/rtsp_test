@@ -230,18 +230,18 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let origin_img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match origin_img_result {
-                    Ok(image) => {
-                            image.save(format!("full-img-{}-{}.jpg", id_1, count)).unwrap();
-                        //  count += 1;
-                    },
-                    Err(e) => {
-                        println!("origin load image error: {:?}", e);
-                        ()
-                    },
-                };
+                // let origin_img_result = 
+                //     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                // match origin_img_result {
+                //     Ok(image) => {
+                //             image.save(format!("full-img-{}-{}.jpg", id_1, count)).unwrap();
+                //         //  count += 1;
+                //     },
+                //     Err(e) => {
+                //         println!("origin load image error: {:?}", e);
+                //         ()
+                //     },
+                // };
 
                 let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
@@ -419,18 +419,18 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let origin_img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match origin_img_result {
-                    Ok(image) => {
-                            image.save(format!("thumb-img-{}-{}.jpg", id_2, count)).unwrap();
-                        //  count += 1;
-                    },
-                    Err(e) => {
-                        println!("origin load image error: {:?}", e);
-                        ()
-                    },
-                };
+                // let origin_img_result = 
+                //     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                // match origin_img_result {
+                //     Ok(image) => {
+                //             image.save(format!("thumb-img-{}-{}.jpg", id_2, count)).unwrap();
+                //         //  count += 1;
+                //     },
+                //     Err(e) => {
+                //         println!("origin load image error: {:?}", e);
+                //         ()
+                //     },
+                // };
 
                 let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
