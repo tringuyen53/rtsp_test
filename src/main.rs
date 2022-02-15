@@ -135,7 +135,7 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-        if count == 9 {
+        if count == 50 {
             println!("stop pipeline");
             *is_frame_getting.lock().unwrap() = false;
             // drop(is_frame_getting.lock().unwrap());
@@ -322,7 +322,7 @@ let mut seeked = false;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         if !*is_frame_getting.lock().unwrap() {
             println!("Gudbaiiiiii");
-            drop(is_frame_getting.lock().unwrap());
+            // drop(is_frame_getting.lock().unwrap());
             // drop(is_frame_getting);
             
             break;
