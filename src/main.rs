@@ -231,18 +231,18 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let origin_img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match origin_img_result {
-                    Ok(image) => {
-                            image.save(format!("full-img-{}-{}.jpg", id_1, count_full)).unwrap();
-                            count_full += 1;
-                    },
-                    Err(e) => {
-                        println!("origin load image error: {:?}", e);
-                        ()
-                    },
-                };
+                // let origin_img_result = 
+                //     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                // match origin_img_result {
+                //     Ok(image) => {
+                //             image.save(format!("full-img-{}-{}.jpg", id_1, count_full)).unwrap();
+                //             count_full += 1;
+                //     },
+                //     Err(e) => {
+                //         println!("origin load image error: {:?}", e);
+                //         ()
+                //     },
+                // };
 
                 // let caps = sample.caps().expect("Sample without caps");
                 // let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
@@ -328,7 +328,7 @@ async fn connect_nats() -> Connection {
             //     }
             //     Err(_) => unreachable!(),
             // };
-            println!("[FULL] cam_id: {:?} - End of scale: {:?}", id_1, std::time::SystemTime::now());
+            println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
             // count += 1;
 
         //      let img_result = 
@@ -420,23 +420,23 @@ async fn connect_nats() -> Connection {
                 //  let mut file = fs::File::create(format!("packet-{}", count)).unwrap();
                 //  file.write_all(samples);
 
-                let origin_img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match origin_img_result {
-                    Ok(image) => {
-                            image.save(format!("thumb-img-{}-{}.jpg", id_2, count_thumb)).unwrap();
-                         count_thumb += 1;
-                    },
-                    Err(e) => {
-                        println!("origin load image error: {:?}", e);
-                        ()
-                    },
-                };
+                // let origin_img_result = 
+                //     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                // match origin_img_result {
+                //     Ok(image) => {
+                //             image.save(format!("thumb-img-{}-{}.jpg", id_2, count_thumb)).unwrap();
+                //          count_thumb += 1;
+                //     },
+                //     Err(e) => {
+                //         println!("origin load image error: {:?}", e);
+                //         ()
+                //     },
+                // };
 
                 // let caps = sample.caps().expect("Sample without caps");
                 // let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
                 // println!("Info: {:?}", info);
-            println!("[THUMB] cam_id: {:?} - End of scale: {:?}", id_2, std::time::SystemTime::now());
+                println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_2);
             // count += 1;
 
         //      let img_result = 
@@ -486,7 +486,7 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
 
 //    println!("Bus: {:?}", bus);
 
-let mut seeked = false;
+// let mut seeked = false;
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         // println!("In loop msg: {:?}", msg);
