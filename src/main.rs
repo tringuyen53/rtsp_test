@@ -135,11 +135,12 @@ async fn connect_nats() -> Connection {
                 })?;
 
         //        println!("Buffer {:?}", buffer);
-        // if count == 1 {
-        //     println!("stop pipeline");
-        //     *is_frame_getting.lock().unwrap() = false;
-        //     // return Err(gst::FlowError::Eos);
-        // }
+        if count == 10 {
+            println!("stop pipeline");
+            // *is_frame_getting.lock().unwrap() = false;
+            pipeline.set_state(gst::State::Paused)?;
+            return Err(gst::FlowError::Eos);
+        }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -178,9 +179,9 @@ async fn connect_nats() -> Connection {
                 //         ()
                 //     },
                 // };
-
-                let caps = sample.caps().expect("Sample without caps");
-                let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                    count += 1;
+                // let caps = sample.caps().expect("Sample without caps");
+                // let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
                 // println!("Info: {:?}", info);
 
                 // let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
@@ -195,74 +196,74 @@ async fn connect_nats() -> Connection {
                 //     })?;
 
 
-                let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                let new_image = match new_image { 
-                    Ok(image) => {
-                    let width = NonZeroU32::new(image.width()).unwrap();
-                    let height = NonZeroU32::new(image.height()).unwrap();
-                    // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
+            //     let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //     let new_image = match new_image { 
+            //         Ok(image) => {
+            //         let width = NonZeroU32::new(image.width()).unwrap();
+            //         let height = NonZeroU32::new(image.height()).unwrap();
+            //         // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
 
-                    // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
-                    // match test_into_raw_image {
-                    //     Ok(image) => {
-                    //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
-                    //      count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("test load rgb8 image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
+            //         // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
+            //         // match test_into_raw_image {
+            //         //     Ok(image) => {
+            //         //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
+            //         //      count += 1;
+            //         //     },
+            //         //     Err(e) => {
+            //         //         println!("test load rgb8 image error: {:?}", e);
+            //         //         ()
+            //         //     },
+            //         // };
 
-                    let mut src_image = fr::Image::from_vec_u8(
-                        width,
-                        height,
-                        image.to_rgb8().into_raw(),
-                        fr::PixelType::U8x3
-                    ).unwrap();
+            //         let mut src_image = fr::Image::from_vec_u8(
+            //             width,
+            //             height,
+            //             image.to_rgb8().into_raw(),
+            //             fr::PixelType::U8x3
+            //         ).unwrap();
 
-                    // let origin_after_torgba8_img_result = 
-                    // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
-                    // match origin_after_torgba8_img_result {
-                    //     Ok(image) => {
-                    //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
-                    //         //  count += 1;
-                    //     },
-                    //     Err(e) => {
-                    //         println!("scaled load image error: {:?}", e);
-                    //         ()
-                    //     },
-                    // };
+            //         // let origin_after_torgba8_img_result = 
+            //         // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
+            //         // match origin_after_torgba8_img_result {
+            //         //     Ok(image) => {
+            //         //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
+            //         //         //  count += 1;
+            //         //     },
+            //         //     Err(e) => {
+            //         //         println!("scaled load image error: {:?}", e);
+            //         //         ()
+            //         //     },
+            //         // };
 
-                    // let alpha_mul_div = fr::MulDiv::default();
-                    // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
+            //         // let alpha_mul_div = fr::MulDiv::default();
+            //         // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
 
-                    let dst_width = NonZeroU32::new(720).unwrap();
-                    let dst_height = NonZeroU32::new(540).unwrap();
+            //         let dst_width = NonZeroU32::new(720).unwrap();
+            //         let dst_height = NonZeroU32::new(540).unwrap();
 
-                    let mut dst_image = fr::Image::new(
-                        dst_width,
-                        dst_height,
-                        src_image.pixel_type(),
-                    );
+            //         let mut dst_image = fr::Image::new(
+            //             dst_width,
+            //             dst_height,
+            //             src_image.pixel_type(),
+            //         );
 
-                    let mut dst_view = dst_image.view_mut();
+            //         let mut dst_view = dst_image.view_mut();
 
-                    let mut resizer = fr::Resizer::new(
-                        fr::ResizeAlg::Convolution(fr::FilterType::Box)
-                    );
+            //         let mut resizer = fr::Resizer::new(
+            //             fr::ResizeAlg::Convolution(fr::FilterType::Box)
+            //         );
 
-                    resizer.resize(&src_image.view(), &mut dst_view).unwrap();
+            //         resizer.resize(&src_image.view(), &mut dst_view).unwrap();
 
-                    // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
+            //         // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
                     
-                    let mut result_buf = BufWriter::new(Vec::new());
-                    image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
+            //         let mut result_buf = BufWriter::new(Vec::new());
+            //         image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
 
-                    Vec::from(result_buf.into_inner().unwrap())
-                }
-                Err(_) => unreachable!(),
-            };
+            //         Vec::from(result_buf.into_inner().unwrap())
+            //     }
+            //     Err(_) => unreachable!(),
+            // };
 
         //      let img_result = 
         //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
@@ -311,7 +312,7 @@ fn main_loop(pipeline: gst::Pipeline, is_frame_getting: Arc<Mutex<bool>>,) -> Re
 
 //    println!("Bus: {:?}", bus);
 
-let mut seeked = false;
+// let mut seeked = false;
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
         // println!("In loop msg: {:?}", msg);
