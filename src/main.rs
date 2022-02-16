@@ -436,7 +436,7 @@ async fn connect_nats() -> Connection {
                 // let caps = sample.caps().expect("Sample without caps");
                 // let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
                 // println!("Info: {:?}", info);
-                println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_2);
+                println!("[THUMB] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_2);
             // count += 1;
 
         //      let img_result = 
