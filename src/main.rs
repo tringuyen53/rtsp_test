@@ -113,6 +113,7 @@ async fn connect_nats() -> Connection {
     let mut got_snapshot = false;
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
+    let pipeline_weak = pipeline.downgrade();
     appsink.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
@@ -138,8 +139,18 @@ async fn connect_nats() -> Connection {
         if count == 10 {
             println!("stop pipeline");
             // *is_frame_getting.lock().unwrap() = false;
-            pipeline.set_state(gst::State::Paused)?;
-            return Err(gst::FlowError::Eos);
+            // pipeline.set_state(gst::State::Null)?;
+            if let Some(pipeline) = pipeline_weak.upgrade() {
+                let ev = gst::event::Eos::new();
+                            let pipeline_weak = pipeline_weak.clone();
+                            pipeline.call_async(move |_| {
+                                if let Some(pipeline) = pipeline_weak.upgrade() {
+                                    pipeline.send_event(ev);
+                                }
+                            });
+
+            }
+            // Err(gst::FlowError::Eos)
         }
 
                 let map = buffer.map_readable().map_err(|_| {
