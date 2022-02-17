@@ -177,6 +177,7 @@ async fn connect_nats() -> Connection {
     // The appsink will then call those handlers, as soon as data is available.
     let id_1 = id.clone();
     let pipeline_weak = pipeline.downgrade();
+    let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
     appsink_full.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
@@ -185,6 +186,7 @@ async fn connect_nats() -> Connection {
                 // let is_record_bool = *is_record.lock().unwrap();
                 // let frame_width = *width.lock().unwrap();
                 // let frame_height = *height.lock().unwrap();
+                let is_frame_getting_weak =  is_frame_getting_weak.clone();
                 
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink_full.pull_sample().map_err(|_| gst::FlowError::Eos)?;
@@ -199,18 +201,20 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                if !*is_frame_getting.lock().unwrap() {
-                    println!("Send EOS.....");
-                    if let Some(pipeline) = pipeline_weak.upgrade() {
-                        let ev = gst::event::Eos::new();
-                        let pipeline_weak = pipeline_weak.clone();
-                        spawn!(async move {
-                            if let Some(pipeline) = pipeline_weak.upgrade() {
-                                pipeline.send_event(ev);
-                            }
-                        });
+                if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
+                    if !*is_frame_getting.lock().unwrap() {
+                        println!("Send EOS.....");
+                        if let Some(pipeline) = pipeline_weak.upgrade() {
+                            let ev = gst::event::Eos::new();
+                            let pipeline_weak = pipeline_weak.clone();
+                            spawn!(async move {
+                                if let Some(pipeline) = pipeline_weak.upgrade() {
+                                    pipeline.send_event(ev);
+                                }
+                            });
+                        }
                     }
-                }
+                }      
 
         //        println!("Buffer {:?}", buffer);
         // if count == 50 {
