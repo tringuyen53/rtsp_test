@@ -142,7 +142,7 @@ async fn connect_nats() -> Connection {
             // pipeline.set_state(gst::State::Null)?;
             if let Some(pipeline) = pipeline_weak.upgrade() {
                 let ev = gst::event::Eos::new();
-                            blocking!(move || {
+                            spawn!(async move {
                                 if let Some(pipeline) = pipeline_weak.upgrade() {
                                     pipeline.send_event(ev);
                                 }
