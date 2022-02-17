@@ -214,7 +214,7 @@ async fn connect_nats() -> Connection {
                             });
                         }
                     }
-                    return Err(gst::FlowError::Eos);
+                    // return Err(gst::FlowError::Eos);
                 }      
 
         //        println!("Buffer {:?}", buffer);
