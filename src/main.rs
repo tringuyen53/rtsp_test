@@ -347,7 +347,7 @@ async fn connect_nats() -> Connection {
             //     Err(_) => unreachable!(),
             // };
             println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
-            // count += 1;
+            count_full += 1;
 
         //      let img_result = 
         //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
