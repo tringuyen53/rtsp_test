@@ -484,7 +484,7 @@ async fn connect_nats() -> Connection {
             })
             .build(),
     );
-    if count_full = 100 {
+    if count_full == 100 {
         println!("Stop pipeline");
         *is_frame_getting.lock().unwrap() = false;
     }
