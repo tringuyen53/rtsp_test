@@ -394,6 +394,18 @@ async fn connect_nats() -> Connection {
         //     // drop(is_frame_getting.lock().unwrap());
         //     return Err(gst::FlowError::Eos);
         // }
+        if !*is_frame_getting.lock().unwrap() {
+            println!("Send EOS.....");
+            if let Some(pipeline) = pipeline_weak.upgrade() {
+                let ev = gst::event::Eos::new();
+                let pipeline_weak = pipeline_weak.clone();
+                spawn!(async move {
+                    if let Some(pipeline) = pipeline_weak.upgrade() {
+                        pipeline.send_event(ev);
+                    }
+                });
+            }
+        }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -472,6 +484,10 @@ async fn connect_nats() -> Connection {
             })
             .build(),
     );
+    if count_full = 100 {
+        println!("Stop pipeline");
+        *is_frame_getting.lock().unwrap() = false;
+    }
     println!("End Of Pipeline");
     Ok(pipeline)
 }
@@ -492,13 +508,7 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
         // println!("In loop msg: {:?}", msg);
         use gst::MessageView;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
-        if !*is_frame_getting.lock().unwrap() {
-            println!("Gudbaiiiiii");
-            // drop(is_frame_getting.lock().unwrap());
-            // drop(is_frame_getting);
-            
-            break;
-        }
+        
         match msg.view() {
             // MessageView::AsyncDone(..) => {
             //     if !seeked {
@@ -553,22 +563,22 @@ async fn main() {
 
     let urls = [
         // "rtsp://10.50.29.36/1/h264major",
-        "rtsp://10.50.31.171/1/h264major",
+        // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.31.172/1/h264major",
-        "rtsp://10.50.13.231/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
-        "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.238/1/h264major",
-        "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
-        "rtsp://10.50.13.241/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
-        "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.234/1/h264major",
+        // "rtsp://10.50.13.235/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.238/1/h264major",
+        // "rtsp://10.50.13.239/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
+        // "rtsp://10.50.13.241/1/h264major",
+        // "rtsp://10.50.13.242/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.244/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
         "rtsp://10.50.13.248/1/h264major",
         "rtsp://10.50.13.249/1/h264major",
         // "rtsp://10.50.13.250/1/h264major",
@@ -582,21 +592,21 @@ async fn main() {
 
     let cam_ip = vec![
         // 36,
-        171,
+        // 171,
         // 172, 
-        231, 
-        233, 
-        234, 
-        235, 
-        236, 
-        237, 
-        238, 
-        239, 
-        240,
-        241,
-        242, 
-        243, 
-        244, 
+        // 231, 
+        // 233, 
+        // 234, 
+        // 235, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
+        // 240,
+        // 241,
+        // 242, 
+        // 243, 
+        // 244, 
         245, 
         248, 
         249,
