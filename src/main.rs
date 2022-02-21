@@ -83,7 +83,7 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! appsink name=sink emit-signals=false drop=true" ,
+        "souphttpsrc location={} method=GET ! appsink name=sink emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -106,7 +106,7 @@ async fn connect_nats() -> Connection {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-//                println!("Sample: {:?}", sample);
+               println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
@@ -142,7 +142,7 @@ async fn connect_nats() -> Connection {
                 })?;
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
-//                 println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
+                println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
