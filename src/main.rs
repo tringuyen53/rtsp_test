@@ -83,7 +83,7 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! vaapijpegdec ! vaapijpegenc ! appsink name=sink emit-signals=false drop=true" ,
+        "souphttpsrc location={} ! image/jpeg ! appsink name=sink emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -140,6 +140,8 @@ async fn connect_nats() -> Connection {
 
                     gst::FlowError::Error
                 })?;
+
+                println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id);
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
                 println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
