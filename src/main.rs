@@ -52,10 +52,16 @@ pub struct RTPMessage {
 }
 
 const NATS_URL: &str = "tls://dev.lexray.com:60064";
+// async fn connect_nats() -> Connection {
+//     println!("Connecting to NATS..");
+//     nats::asynk::Options::with_credentials("hub.creds")
+//         .connect(NATS_URL)
+//         .await
+//         .unwrap()
+// }
+
 async fn connect_nats() -> Connection {
-    println!("Connecting to NATS..");
-    nats::asynk::Options::with_credentials("hub.creds")
-        .connect(NATS_URL)
+    nats::asynk::connect("nats://demo.nats.io:4222")
         .await
         .unwrap()
 }
@@ -106,7 +112,7 @@ async fn connect_nats() -> Connection {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-               println!("Sample: {:?}", sample);
+               //println!("Sample: {:?}", sample);
                 let buffer = sample.buffer().ok_or_else(|| {
                     element_error!(
                         appsink,
