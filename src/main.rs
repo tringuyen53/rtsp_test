@@ -72,14 +72,20 @@ async fn connect_nats() -> Connection {
     //    "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! avdec_h264 ! queue ! video/x-raw ! jpegenc ! image/jpeg ! appsink name=sink" ,
   //      uri
 //    ))?
-     let pipeline = gst::parse_launch(&format!(
-         "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
-         uri
-     ))?
+//RTP PACKET
+    //  let pipeline = gst::parse_launch(&format!(
+    //      "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! appsink name=sink max-buffers=100 emit-signals=false drop=true" ,
+    //      uri
+    //  ))?
     // let pipeline = gst::parse_launch(&format!(
     //     "rtspsrc location={} latency=100 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
     //     uri
     // ))?
+        //MJPEG
+    let pipeline = gst::parse_launch(&format!(
+        "souphttpsrc location={} ! appsink name=sink emit-signals=false drop=true" ,
+        uri
+    ))?
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
 
@@ -135,21 +141,21 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
+                // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
 //                 println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-//              let img_result = 
-//                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-//              match img_result {
-//                  Ok(image) => {
-//                          image.save(format!("img-{}-{}.jpg", seed, count)).unwrap();
-//                          count += 1;
-//                     },
-//                  Err(_) => (),
-//              };
+             let img_result = 
+                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+             match img_result {
+                 Ok(image) => {
+                         image.save(format!("img-{}-{}.jpg", id, count)).unwrap();
+                         count += 1;
+                    },
+                 Err(_) => (),
+             };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -215,26 +221,27 @@ async fn main() {
     
 
     let urls = [
-        "rtsp://10.50.29.36/1/h264major",
-        "rtsp://10.50.13.231/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
-        "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.238/1/h264major",
-        "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
-        "rtsp://10.50.13.241/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
-        "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.248/1/h264major",
-        "rtsp://10.50.13.249/1/h264major",
-        "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
-        "rtsp://10.50.13.254/1/h264major",
+        // "rtsp://10.50.29.36/1/h264major",
+        // "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.234/1/h264major",
+        // "rtsp://10.50.13.235/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.238/1/h264major",
+        // "rtsp://10.50.13.239/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
+        // "rtsp://10.50.13.241/1/h264major",
+        // "rtsp://10.50.13.242/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.244/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.248/1/h264major",
+        // "rtsp://10.50.13.249/1/h264major",
+        // "rtsp://10.50.13.252/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.13.254/1/h264major",
+        "http://10.50.13.241/mjpgstreamreq/1/image.jpg",
     ];
 
     Bastion::init();
@@ -249,26 +256,27 @@ async fn main() {
     }).map_err(|_| println!("Error"));
 
     let cam_ip = vec![
-        36, 
-        231, 
-        233, 
-        234, 
-        235, 
-        236, 
-        237, 
-        238, 
-        239, 
-        240,
-        241,
-        242, 
-        243, 
-        244, 
-        245, 
-        248, 
-        249, 
-        252, 
-        253, 
-        254,
+        // 36, 
+        // 231, 
+        // 233, 
+        // 234, 
+        // 235, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
+        // 240,
+        // 241,
+        // 242, 
+        // 243, 
+        // 244, 
+        // 245, 
+        // 248, 
+        // 249, 
+        // 252, 
+        // 253, 
+        // 254,
+        241, //mjpeg
     ];
 
     for ip in &cam_ip {
