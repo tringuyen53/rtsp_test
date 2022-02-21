@@ -83,7 +83,7 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! image/jpeg ! appsink name=sink emit-signals=false drop=true" ,
+        "souphttpsrc location={} ! image/jpeg ! vaapijpegenc ! appsink name=sink emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
