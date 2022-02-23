@@ -204,7 +204,7 @@ async fn connect_nats() -> Connection {
 
                 // if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
                     if !*is_frame_getting_2.lock().unwrap() {
-                        // println!("Send EOS.....");
+                        println!("Send EOS.....");
                         if let Some(pipeline) = pipeline_weak.upgrade() {
                             let ev = gst::event::Eos::new();
                             let pipeline_weak = pipeline_weak.clone();
@@ -586,13 +586,13 @@ async fn main() {
         // "rtsp://10.50.13.242/1/h264major",
         // "rtsp://10.50.13.243/1/h264major",
         // "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.248/1/h264major",
-        "rtsp://10.50.13.249/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.248/1/h264major",
+        // "rtsp://10.50.13.249/1/h264major",
         // "rtsp://10.50.13.250/1/h264major",
         // "rtsp://10.50.13.251/1/h264major",
-        "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.13.252/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
         "rtsp://10.50.13.254/1/h264major",
     ];
 
@@ -615,13 +615,13 @@ async fn main() {
         // 242, 
         // 243, 
         // 244, 
-        245, 
-        248, 
-        249,
+        //245, 
+        //248, 
+        //249,
         // 250, 
         // 251,
-        252, 
-        253, 
+        //252, 
+        //253, 
         254,
     ];
 
