@@ -704,7 +704,7 @@ println!("spawn new actor: {:?}", message.id);
                 let child_ref = ctx.current().clone();
                         let cam_distributor_by_id =
                             Distributor::named(format!("rtsp-{}", msg));
-                        cam_distributor_by_id.unsubscribe(child_ref).expect("unsub failed")
+                        cam_distributor_by_id.unsubscribe(child_ref).expect("unsub failed");
                         ctx.supervisor()
                             .unwrap()
                             .stop()
