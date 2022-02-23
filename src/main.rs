@@ -95,7 +95,7 @@ async fn connect_nats() -> Connection {
     //  ))?
 
      let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} !
+        "rtspsrc location={} name=src !
         application/x-rtp, media=video, encoding-name=H264!
         rtph264depay ! queue leaky=2 !
         h264parse ! tee name=thumbnail_video !
@@ -111,6 +111,12 @@ async fn connect_nats() -> Connection {
     ))?
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
+
+    let src = pipeline
+    .by_name("src")
+    .expect("src element not found")
+    .downcast::<gst::Element>()
+    .expect("src element is expected to be an appsink!");
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
@@ -188,6 +194,7 @@ async fn connect_nats() -> Connection {
     // The appsink will then call those handlers, as soon as data is available.
     let id_1 = id.clone();
     let pipeline_weak = pipeline.downgrade();
+    let src_weak = src.downgrade();
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
     let is_frame_getting_2 = is_frame_getting.clone();
     appsink_full.set_callbacks(
@@ -216,7 +223,9 @@ async fn connect_nats() -> Connection {
                 // if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
                     if !*is_frame_getting_2.lock().unwrap() {
                         println!("Send EOS.....");
-                        appsink_full.send_event(gst::event::Eos::new());
+                        if let Some(src) = src_weak.upgrade() {
+                            src.send_event(gst::event::Eos::new());
+                        }
                         // if let Some(pipeline) = pipeline_weak.upgrade() {
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
