@@ -211,7 +211,8 @@ async fn connect_nats() -> Connection {
                             let pipeline_weak = pipeline_weak.clone();
                             spawn!(async move {
                                 if let Some(pipeline) = pipeline_weak.upgrade() {
-                                    pipeline.send_event(ev);
+                                    let res = pipeline.send_event(ev);
+                                    println!("send event: {}", res);
                                 }
                             });
                         }
