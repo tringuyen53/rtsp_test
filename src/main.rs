@@ -95,7 +95,18 @@ async fn connect_nats() -> Connection {
     //  ))?
 
      let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! application/x-rtp, media=video, encoding-name=H264! rtph264depay ! queue leaky=2 ! h264parse ! tee name=thumbnail_video ! queue leaky=2 ! vaapih264dec ! videorate ! capsfilter caps=video/x-raw,framerate=10/1 ! vaapipostproc ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true    thumbnail_video. ! queue leaky=0 ! vaapih264dec ! videorate ! capsfilter caps=video/x-raw,framerate=10/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc! appsink name=app2 emit-signals=false drop=true" ,
+        "rtspsrc location={} !
+        application/x-rtp, media=video, encoding-name=H264!
+        rtph264depay ! queue leaky=2 !
+        h264parse ! tee name=thumbnail_video !
+        queue leaky=2 ! vaapih264dec !
+        videorate ! video/x-raw, framerate=3/1 !
+        vaapipostproc ! vaapijpegenc !
+        appsink name=app1 max-buffers=100 emit-signals=false drop=true
+        thumbnail_video. ! queue leaky=2 ! vaapih264dec !
+        videorate ! video/x-raw, framerate=3/1 !
+        vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc !
+        appsink name=app2 max-buffers=100 emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -205,16 +216,17 @@ async fn connect_nats() -> Connection {
                 // if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
                     if !*is_frame_getting_2.lock().unwrap() {
                         println!("Send EOS.....");
-                        if let Some(pipeline) = pipeline_weak.upgrade() {
-                            println!("Pipeline after upgrade: {:?}", pipeline);
-                            let ev = gst::event::Eos::new();
-                            let pipeline_weak = pipeline_weak.clone();
-                                if let Some(pipeline) = pipeline_weak.upgrade() {
-                                    // let res = pipeline.send_event(ev);
-                                    pipeline.set_state(gst::State::Null);
-                                    // println!("send event: {}", res);
-                                }
-                        }
+                        appsink_full.send_event(gst::event::Eos);
+                        // if let Some(pipeline) = pipeline_weak.upgrade() {
+                        //     println!("Pipeline after upgrade: {:?}", pipeline);
+                        //     let ev = gst::event::Eos::new();
+                        //     let pipeline_weak = pipeline_weak.clone();
+                        //         if let Some(pipeline) = pipeline_weak.upgrade() {
+                        //             // let res = pipeline.send_event(ev);
+                        //             pipeline.set_state(gst::State::Null);
+                        //             // println!("send event: {}", res);
+                        //         }
+                        // }
                     }
                     // return Err(gst::FlowError::Eos);
                 // }      
