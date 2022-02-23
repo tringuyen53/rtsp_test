@@ -209,12 +209,10 @@ async fn connect_nats() -> Connection {
                             println!("Pipeline after upgrade: {:?}", pipeline);
                             let ev = gst::event::Eos::new();
                             let pipeline_weak = pipeline_weak.clone();
-                            spawn!(async move {
                                 if let Some(pipeline) = pipeline_weak.upgrade() {
                                     let res = pipeline.send_event(ev);
                                     println!("send event: {}", res);
                                 }
-                            });
                         }
                     }
                     // return Err(gst::FlowError::Eos);
