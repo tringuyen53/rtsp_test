@@ -208,12 +208,12 @@ async fn connect_nats() -> Connection {
                         if let Some(pipeline) = pipeline_weak.upgrade() {
                             let ev = gst::event::Eos::new();
                             let pipeline_weak = pipeline_weak.clone();
-                            let blocking_task = spawn!(async move {
+                            let blocking_task = async move {
                                 if let Some(pipeline) = pipeline_weak.upgrade() {
                                     pipeline.send_event(ev);
                                 }
-                            });
-                            blocking_task.await.unwrap();
+                            };
+                            let result = run!(blocking_task);
                         }
                     }
                     // return Err(gst::FlowError::Eos);
