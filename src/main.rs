@@ -353,8 +353,8 @@ async fn connect_nats() -> Connection {
             if count_full == 10 {
                 println!("Stop pipeline");
                 *is_frame_getting.lock().unwrap() = false;
-                let cam_dist = Distributor::named(format!("rtsp-{}", id_1));
-                cam_dist.tell_one(id_1).expect("Send stop failed.");
+                let cam_dist = Distributor::named(format!("rtsp-{}", id_1.clone()));
+                cam_dist.tell_one(id_1.clone()).expect("Send stop failed.");
             }
         //      let img_result = 
         //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
