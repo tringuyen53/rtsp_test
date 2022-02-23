@@ -206,6 +206,7 @@ async fn connect_nats() -> Connection {
                     if !*is_frame_getting_2.lock().unwrap() {
                         println!("Send EOS.....");
                         if let Some(pipeline) = pipeline_weak.upgrade() {
+                            println!("Pipeline after upgrade: {:?}", pipeline);
                             let ev = gst::event::Eos::new();
                             let pipeline_weak = pipeline_weak.clone();
                             spawn!(async move {
