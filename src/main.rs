@@ -210,8 +210,9 @@ async fn connect_nats() -> Connection {
                             let ev = gst::event::Eos::new();
                             let pipeline_weak = pipeline_weak.clone();
                                 if let Some(pipeline) = pipeline_weak.upgrade() {
-                                    let res = pipeline.send_event(ev);
-                                    println!("send event: {}", res);
+                                    // let res = pipeline.send_event(ev);
+                                    pipeline.set_state(gst::State::Null);
+                                    // println!("send event: {}", res);
                                 }
                         }
                     }
@@ -515,7 +516,7 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
 // let mut seeked = false;
 
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
-        // println!("In loop msg: {:?}", msg);
+        println!("In loop msg: {:?}", msg);
         use gst::MessageView;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
         
