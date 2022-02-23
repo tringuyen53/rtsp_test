@@ -208,12 +208,11 @@ async fn connect_nats() -> Connection {
                         if let Some(pipeline) = pipeline_weak.upgrade() {
                             let ev = gst::event::Eos::new();
                             let pipeline_weak = pipeline_weak.clone();
-                            let blocking_task = async move {
+                            spawn!(async move {
                                 if let Some(pipeline) = pipeline_weak.upgrade() {
                                     pipeline.send_event(ev);
                                 }
-                            };
-                            let result = run!(blocking_task);
+                            });
                         }
                     }
                     // return Err(gst::FlowError::Eos);
@@ -351,9 +350,11 @@ async fn connect_nats() -> Connection {
             // };
             println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
             count_full += 1;
-            if count_full == 100 {
+            if count_full == 10 {
                 println!("Stop pipeline");
                 *is_frame_getting.lock().unwrap() = false;
+                let cam_dist = Distributor::named(format!("rtsp-{}", id_1));
+                cam_dist.tell_one(id_1).expect("Send stop failed.");
             }
         //      let img_result = 
         //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
@@ -698,6 +699,16 @@ println!("spawn new actor: {:?}", message.id);
     });
     // handle.await?;
     // println!("Arc counter: {}", Arc::strong_count(&is_frame_getting));
+            })
+            .on_tell(|msg: String, _| {
+                let child_ref = ctx.current().clone();
+                        let cam_distributor_by_id =
+                            Distributor::named(format!("rtsp-{}", msg));
+                        cam_distributor_by_id.unsubscribe(child_ref).expect("unsub failed")
+                        ctx.supervisor()
+                            .unwrap()
+                            .stop()
+                            .expect("[CAMERA] Couldn't stop.");
             })
             .on_fallback(|unknown, _sender_addr| {
                 println!("unknown");
