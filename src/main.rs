@@ -216,7 +216,7 @@ async fn connect_nats() -> Connection {
                 // if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
                     if !*is_frame_getting_2.lock().unwrap() {
                         println!("Send EOS.....");
-                        appsink_full.send_event(gst::event::Eos);
+                        appsink_full.send_event(gst::event::Eos::new());
                         // if let Some(pipeline) = pipeline_weak.upgrade() {
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
