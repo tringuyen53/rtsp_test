@@ -253,9 +253,10 @@ async fn connect_nats() -> Connection {
                             //     q2.send_event(gst::event::Eos::new());
                             // }
                         if let Some(pipeline) = pipeline_weak_full.upgrade() {
-                            pipeline.set_state(gst::State::Paused);
+                            pipeline.set_state(gst::State::Null);
                             println!("Current state: {:?}", pipeline.current_state());
-                            
+                            pipeline.set_state(gst::State::Playing);
+                            println!("Current state: {:?}", pipeline.current_state());
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
                         //     let pipeline_weak = pipeline_weak.clone();
