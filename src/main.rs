@@ -13,6 +13,7 @@ extern crate gstreamer_app as gst_app;
 extern crate gstreamer_video as gst_video;
 use gst::element_error;
 use gst::glib;
+use gst::glib::clone::Downgrade;
 use gst::prelude::*;
 use byte_slice_cast::*;
 use image::GenericImageView;
@@ -196,7 +197,8 @@ async fn connect_nats() -> Connection {
     let pipeline_weak = pipeline.downgrade();
     let src_weak = src.downgrade();
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
-    let is_frame_getting_2 = is_frame_getting.clone();
+    let is_frame_getting_full_weak = is_frame_getting.downgrade();
+    let is_frame_getting_thumb_weak = is_frame_getting.downgrade();
     appsink_full.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
@@ -220,20 +222,16 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                // if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
-                    if !*is_frame_getting_2.lock().unwrap() {
+                if let Some(is_frame_getting) = is_frame_getting_full_weak.upgrade() {
+                    if !*is_frame_getting.lock().unwrap() {
                         if let Some(pipeline) = pipeline_weak.upgrade() {
                             println!("Current state: {:?}", pipeline.current_state());
                         }
-                        let cam_dist = Distributor::named(format!("rtsp-{}", id_1.clone()));
-                        cam_dist.tell_one(id_1.clone()).map_err(|e| {
-                            println!("Error: {:?}", e);
-                        });;
+                        
                         // std::thread::sleep(std::time::Duration::from_secs(1));
                         println!("Send EOS.....");
-                        if let Some(src) = src_weak.upgrade() {
-                            src.send_event(gst::event::Eos::new());
-                        }
+                            appsink_full.send_event(gst::event::Eos::new());
+                    
                         // if let Some(pipeline) = pipeline_weak.upgrade() {
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
@@ -246,7 +244,7 @@ async fn connect_nats() -> Connection {
                         // }
                     }
                     // return Err(gst::FlowError::Eos);
-                // }      
+                }      
 
         //        println!("Buffer {:?}", buffer);
         // if count == 50 {
@@ -369,7 +367,15 @@ async fn connect_nats() -> Connection {
         //     *is_frame_getting.lock().unwrap() = false;
         //     // drop(is_frame_getting.lock().unwrap());
         //     return Err(gst::FlowError::Eos);
-        // }
+        if let Some(is_frame_getting) = is_frame_getting_thumb_weak.upgrade() {
+            if !*is_frame_getting.lock().unwrap() {
+                if let Some(pipeline) = pipeline_weak.upgrade() {
+                    println!("Current state: {:?}", pipeline.current_state());
+                }
+                println!("Send EOS.....");
+                appsink_thumb.send_event(gst::event::Eos::new());
+            }
+        }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
@@ -492,6 +498,10 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
             MessageView::Eos(..) => {
                 // pipeline.set_state(gst::State::Null)?;
                 println!("Got Eos message, done");
+                let cam_dist = Distributor::named(format!("rtsp-{}", id.clone()));
+                        cam_dist.tell_one(id.clone()).map_err(|e| {
+                            println!("Error: {:?}", e);
+                        });;
                 break;
             },
             MessageView::Error(err) => {
