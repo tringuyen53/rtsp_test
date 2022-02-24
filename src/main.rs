@@ -100,11 +100,11 @@ async fn connect_nats() -> Connection {
         application/x-rtp, media=video, encoding-name=H264!
         rtph264depay ! queue leaky=2 !
         h264parse ! tee name=thumbnail_video !
-        queue leaky=2 ! vaapih264dec !
+        queue leaky=2 flush-on-eos=true name=q1 ! vaapih264dec !
         videorate ! video/x-raw, framerate=3/1 !
         vaapipostproc ! vaapijpegenc !
         appsink name=app1 max-buffers=100 emit-signals=false drop=true
-        thumbnail_video. ! queue leaky=2 ! vaapih264dec !
+        thumbnail_video. ! queue leaky=2 flush-on-eos=true name=q2 ! vaapih264dec !
         videorate ! video/x-raw, framerate=3/1 !
         vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc !
         appsink name=app2 max-buffers=100 emit-signals=false drop=true" ,
@@ -118,6 +118,18 @@ async fn connect_nats() -> Connection {
     .expect("src element not found")
     .downcast::<gst::Element>()
     .expect("src element is expected to be an appsink!");
+
+    let q1 = pipeline
+    .by_name("q1")
+    .expect("q1 element not found")
+    .downcast::<gst::Element>()
+    .expect("q1 element is expected to be an appsink!");
+
+    let q2 = pipeline
+    .by_name("q2")
+    .expect("q2 element not found")
+    .downcast::<gst::Element>()
+    .expect("q2 element is expected to be an appsink!");
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
@@ -194,7 +206,10 @@ async fn connect_nats() -> Connection {
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     let id_1 = id.clone();
-    let pipeline_weak = gst::prelude::ObjectExt::downgrade(&pipeline);
+    let pipeline_weak_full = gst::prelude::ObjectExt::downgrade(&pipeline);
+    let pipeline_weak_thumb = gst::prelude::ObjectExt::downgrade(&pipeline);
+    let q1_weak_thumb = gst::prelude::ObjectExt::downgrade(&q1);
+    let q2_weak_thumb = gst::prelude::ObjectExt::downgrade(&q2);
     let src_weak = gst::prelude::ObjectExt::downgrade(&src);
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
     let is_frame_getting_full_weak = Arc::downgrade(&is_frame_getting);
@@ -230,18 +245,24 @@ async fn connect_nats() -> Connection {
                         
                         // std::thread::sleep(std::time::Duration::from_secs(1));
                         println!("Send EOS.....");
-                            appsink_full.send_event(gst::event::Eos::new());
-                    
-                        // if let Some(pipeline) = pipeline_weak.upgrade() {
+                            // appsink_full.send_event(gst::event::Eos::new());
+                            if let Some(q1) = q1_weak_full.upgrade() {
+                                q1.send_event(gst::event::Eos::new());
+                            }
+                            if let Some(q2) = q2_weak_full.upgrade() {
+                                q2.send_event(gst::event::Eos::new());
+                            }
+                        if let Some(src) = src_weak_full.upgrade() {
+                            
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
                         //     let pipeline_weak = pipeline_weak.clone();
                         //         if let Some(pipeline) = pipeline_weak.upgrade() {
                         //             // let res = pipeline.send_event(ev);
-                        //             pipeline.set_state(gst::State::Null);
+                                    src.send_event(gst::event::Eos::new());
                         //             // println!("send event: {}", res);
                         //         }
-                        // }
+                        }
                     }
                     // return Err(gst::FlowError::Eos);
                 }      
@@ -373,7 +394,7 @@ async fn connect_nats() -> Connection {
                     println!("Current state: {:?}", pipeline.current_state());
                 }
                 println!("Send EOS.....");
-                appsink_thumb.send_event(gst::event::Eos::new());
+                pipeline.send_event(gst::event::Eos::new());
             }
         }
 
@@ -552,10 +573,10 @@ async fn main() {
         // "rtsp://10.50.13.245/1/h264major",
         // "rtsp://10.50.13.248/1/h264major",
         // "rtsp://10.50.13.249/1/h264major",
-        // "rtsp://10.50.13.250/1/h264major",
-        // "rtsp://10.50.13.251/1/h264major",
-        // "rtsp://10.50.13.252/1/h264major",
-        // "rtsp://10.50.13.253/1/h264major",
+        "rtsp://10.50.13.250/1/h264major",
+        "rtsp://10.50.13.251/1/h264major",
+        "rtsp://10.50.13.252/1/h264major",
+        "rtsp://10.50.13.253/1/h264major",
         "rtsp://10.50.13.254/1/h264major",
     ];
 
@@ -581,10 +602,10 @@ async fn main() {
         //245, 
         //248, 
         //249,
-        // 250, 
-        // 251,
-        //252, 
-        //253, 
+        250, 
+        251,
+        252, 
+        253, 
         254,
     ];
 
