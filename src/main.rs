@@ -194,8 +194,8 @@ async fn connect_nats() -> Connection {
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     let id_1 = id.clone();
-    let pipeline_weak = pipeline.downgrade();
-    let src_weak = src.downgrade();
+    let pipeline_weak = gst::prelude::ObjectExt::downgrade(&pipeline);
+    let src_weak = gst::prelude::ObjectExt::downgrade(&src);
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
     let is_frame_getting_full_weak = Arc::downgrade(&is_frame_getting);
     let is_frame_getting_thumb_weak = Arc::downgrade(&is_frame_getting);
