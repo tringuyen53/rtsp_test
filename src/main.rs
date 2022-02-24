@@ -222,6 +222,9 @@ async fn connect_nats() -> Connection {
 
                 // if let Some(is_frame_getting) = is_frame_getting_weak.upgrade() {
                     if !*is_frame_getting_2.lock().unwrap() {
+                        if let Some(pipeline) = pipeline_weak.upgrade() {
+                            println!("Current state: {:?}", pipeline.current_state());
+                        }
                         println!("Send EOS.....");
                         if let Some(src) = src_weak.upgrade() {
                             src.send_event(gst::event::Eos::new());
@@ -302,74 +305,6 @@ async fn connect_nats() -> Connection {
                 //     })?;
 
 
-            //     let new_image = image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-            //     let new_image = match new_image { 
-            //         Ok(image) => {
-            //         let width = NonZeroU32::new(image.width()).unwrap();
-            //         let height = NonZeroU32::new(image.height()).unwrap();
-            //         // println!("Origin width height - {:?}x{:?} - color type: {:?}", width, height, image.color());
-
-            //         // let test_into_raw_image =  image::load_from_memory_with_format(&image.to_rgb8().into_raw(), ImageFormat::Jpeg);
-            //         // match test_into_raw_image {
-            //         //     Ok(image) => {
-            //         //         image.save(format!("test-load-rgb8-img-{}-{}.jpg", seed, count)).unwrap();
-            //         //      count += 1;
-            //         //     },
-            //         //     Err(e) => {
-            //         //         println!("test load rgb8 image error: {:?}", e);
-            //         //         ()
-            //         //     },
-            //         // };
-
-            //         let mut src_image = fr::Image::from_vec_u8(
-            //             width,
-            //             height,
-            //             image.to_rgb8().into_raw(),
-            //             fr::PixelType::U8x3
-            //         ).unwrap();
-
-            //         // let origin_after_torgba8_img_result = 
-            //         // image::load_from_memory_with_format(src_image.buffer(), ImageFormat::Jpeg);
-            //         // match origin_after_torgba8_img_result {
-            //         //     Ok(image) => {
-            //         //             image.save(format!("origin-rgba8-img-{}-{}.jpg", seed, count)).unwrap();
-            //         //         //  count += 1;
-            //         //     },
-            //         //     Err(e) => {
-            //         //         println!("scaled load image error: {:?}", e);
-            //         //         ()
-            //         //     },
-            //         // };
-
-            //         // let alpha_mul_div = fr::MulDiv::default();
-            //         // alpha_mul_div.multiply_alpha_inplace(&mut src_image.view_mut()).unwrap();
-
-            //         let dst_width = NonZeroU32::new(720).unwrap();
-            //         let dst_height = NonZeroU32::new(540).unwrap();
-
-            //         let mut dst_image = fr::Image::new(
-            //             dst_width,
-            //             dst_height,
-            //             src_image.pixel_type(),
-            //         );
-
-            //         let mut dst_view = dst_image.view_mut();
-
-            //         let mut resizer = fr::Resizer::new(
-            //             fr::ResizeAlg::Convolution(fr::FilterType::Box)
-            //         );
-
-            //         resizer.resize(&src_image.view(), &mut dst_view).unwrap();
-
-            //         // alpha_mul_div.divide_alpha_inplace(&mut dst_view).unwrap();
-                    
-            //         let mut result_buf = BufWriter::new(Vec::new());
-            //         image::codecs::jpeg::JpegEncoder::new(&mut result_buf).encode(dst_image.buffer(), dst_width.get(), dst_height.get(), ColorType::Rgb8).unwrap();
-
-            //         Vec::from(result_buf.into_inner().unwrap())
-            //     }
-            //     Err(_) => unreachable!(),
-            // };
             println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
             count_full += 1;
             if count_full == 10 {
@@ -391,15 +326,6 @@ async fn connect_nats() -> Connection {
 		// 	()
 		// },
         //      };
-             
-            // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
-            // let result = throttle.accept();
-            // if result.is_ok() {
-                    // println!("Throttle START!!");
-                    // count += 1;
-                    // let transcode_actor = Distributor::named("transcode");
-                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
-                    // let _ = client.publish(TOPIC, samples.to_vec());
                     drop(samples);
                     drop(map);
                     drop(buffer);
