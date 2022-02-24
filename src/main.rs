@@ -208,8 +208,8 @@ async fn connect_nats() -> Connection {
     let id_1 = id.clone();
     let pipeline_weak_full = gst::prelude::ObjectExt::downgrade(&pipeline);
     let pipeline_weak_thumb = gst::prelude::ObjectExt::downgrade(&pipeline);
-    let q1_weak_thumb = gst::prelude::ObjectExt::downgrade(&q1);
-    let q2_weak_thumb = gst::prelude::ObjectExt::downgrade(&q2);
+    let q1_weak_full = gst::prelude::ObjectExt::downgrade(&q1);
+    let q2_weak_full = gst::prelude::ObjectExt::downgrade(&q2);
     let src_weak = gst::prelude::ObjectExt::downgrade(&src);
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
     let is_frame_getting_full_weak = Arc::downgrade(&is_frame_getting);
