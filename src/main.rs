@@ -252,7 +252,7 @@ async fn connect_nats() -> Connection {
                             if let Some(q2) = q2_weak_full.upgrade() {
                                 q2.send_event(gst::event::Eos::new());
                             }
-                        if let Some(src) = src_weak_full.upgrade() {
+                        if let Some(src) = src_weak.upgrade() {
                             
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
