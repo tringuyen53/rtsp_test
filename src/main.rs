@@ -224,9 +224,9 @@ async fn connect_nats() -> Connection {
 
                 if let Some(is_frame_getting) = is_frame_getting_full_weak.upgrade() {
                     if !*is_frame_getting.lock().unwrap() {
-                        if let Some(pipeline) = pipeline_weak.upgrade() {
-                            println!("Current state: {:?}", pipeline.current_state());
-                        }
+                        // if let Some(pipeline) = pipeline_weak.upgrade() {
+                        //     println!("Current state: {:?}", pipeline.current_state());
+                        // }
                         
                         // std::thread::sleep(std::time::Duration::from_secs(1));
                         println!("Send EOS.....");
