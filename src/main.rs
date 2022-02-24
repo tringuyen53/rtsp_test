@@ -226,8 +226,10 @@ async fn connect_nats() -> Connection {
                             println!("Current state: {:?}", pipeline.current_state());
                         }
                         let cam_dist = Distributor::named(format!("rtsp-{}", id_1.clone()));
-                        cam_dist.tell_one(id_1.clone()).expect("Send stop failed.");
-                        std::thread::sleep(std::time::Duration::from_secs(1));
+                        cam_dist.tell_one(id_1.clone()).map_err(|e| {
+                            println!("Error: {:?}", e);
+                        });;
+                        // std::thread::sleep(std::time::Duration::from_secs(1));
                         println!("Send EOS.....");
                         if let Some(src) = src_weak.upgrade() {
                             src.send_event(gst::event::Eos::new());
