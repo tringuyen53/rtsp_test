@@ -253,10 +253,10 @@ async fn connect_nats() -> Connection {
                             //     q2.send_event(gst::event::Eos::new());
                             // }
                         if let Some(pipeline) = pipeline_weak_full.upgrade() {
-                            pipeline.set_state(gst::State::Null);
-                            println!("Current state: {:?}", pipeline.current_state());
-                            pipeline.set_state(gst::State::Playing);
-                            println!("Current state: {:?}", pipeline.current_state());
+                            // pipeline.set_state(gst::State::Null);
+                            // println!("Current state: {:?}", pipeline.current_state());
+                            // pipeline.set_state(gst::State::Playing);
+                            // println!("Current state: {:?}", pipeline.current_state());
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
                         //     let pipeline_weak = pipeline_weak.clone();
@@ -495,7 +495,7 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
 
 // let mut seeked = false;
 
-    for msg in bus.iter_timed(gst::ClockTime::NONE) {
+    for msg in bus.iter_filtered(&[gst::MessageType::Eos]) {
         println!("In loop msg: {:?}", msg);
         use gst::MessageView;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
@@ -579,7 +579,7 @@ async fn main() {
         // "rtsp://10.50.13.250/1/h264major",
         // "rtsp://10.50.13.251/1/h264major",
         // "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
         "rtsp://10.50.13.254/1/h264major",
     ];
 
@@ -608,7 +608,7 @@ async fn main() {
         // 250, 
         // 251,
         // 252, 
-        253, 
+        // 253, 
         254,
     ];
 
