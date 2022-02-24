@@ -246,20 +246,22 @@ async fn connect_nats() -> Connection {
                         // std::thread::sleep(std::time::Duration::from_secs(1));
                         println!("Send EOS.....");
                             // appsink_full.send_event(gst::event::Eos::new());
-                            if let Some(q1) = q1_weak_full.upgrade() {
-                                q1.send_event(gst::event::Eos::new());
-                            }
-                            if let Some(q2) = q2_weak_full.upgrade() {
-                                q2.send_event(gst::event::Eos::new());
-                            }
+                            // if let Some(q1) = q1_weak_full.upgrade() {
+                            //     q1.send_event(gst::event::Eos::new());
+                            // }
+                            // if let Some(q2) = q2_weak_full.upgrade() {
+                            //     q2.send_event(gst::event::Eos::new());
+                            // }
                         if let Some(pipeline) = pipeline_weak_full.upgrade() {
+                            pipeline.set_state(gst::State::Paused);
+                            println!("Current state: {:?}", pipeline.current_state());
                             
                         //     println!("Pipeline after upgrade: {:?}", pipeline);
                         //     let ev = gst::event::Eos::new();
                         //     let pipeline_weak = pipeline_weak.clone();
                         //         if let Some(pipeline) = pipeline_weak.upgrade() {
                         //             // let res = pipeline.send_event(ev);
-                        pipeline.send_event(gst::event::Eos::new());
+                            pipeline.send_event(gst::event::Eos::new());
                         //             // println!("send event: {}", res);
                         //         }
                         }
