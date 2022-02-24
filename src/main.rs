@@ -388,15 +388,15 @@ async fn connect_nats() -> Connection {
         //     *is_frame_getting.lock().unwrap() = false;
         //     // drop(is_frame_getting.lock().unwrap());
         //     return Err(gst::FlowError::Eos);
-        if let Some(is_frame_getting) = is_frame_getting_thumb_weak.upgrade() {
-            if !*is_frame_getting.lock().unwrap() {
-                if let Some(pipeline) = pipeline_weak.upgrade() {
-                    println!("Current state: {:?}", pipeline.current_state());
-                }
-                println!("Send EOS.....");
-                pipeline.send_event(gst::event::Eos::new());
-            }
-        }
+        // if let Some(is_frame_getting) = is_frame_getting_thumb_weak.upgrade() {
+        //     if !*is_frame_getting.lock().unwrap() {
+        //         if let Some(pipeline) = pipeline_weak.upgrade() {
+        //             println!("Current state: {:?}", pipeline.current_state());
+        //         }
+        //         println!("Send EOS.....");
+        //         pipeline.send_event(gst::event::Eos::new());
+        //     }
+        // }
 
                 let map = buffer.map_readable().map_err(|_| {
                     element_error!(
