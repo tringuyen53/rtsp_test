@@ -197,8 +197,8 @@ async fn connect_nats() -> Connection {
     let pipeline_weak = pipeline.downgrade();
     let src_weak = src.downgrade();
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
-    let is_frame_getting_full_weak = is_frame_getting.downgrade();
-    let is_frame_getting_thumb_weak = is_frame_getting.downgrade();
+    let is_frame_getting_full_weak = Arc::downgrade(is_frame_getting);
+    let is_frame_getting_thumb_weak = Arc::downgrade(is_frame_getting);
     appsink_full.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
