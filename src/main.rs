@@ -495,7 +495,7 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
 
 // let mut seeked = false;
 
-while let Some(msg) = bus.iter_filtered(&[gst::MessageType::Eos]) {
+while let Some(msg) = bus.timed_pop_filtered(gst::ClockTime::NONE, &[gst::MessageType::Eos]) {
         println!("In loop msg: {:?}", msg);
         use gst::MessageView;
         // println!("is getting frame: {}",*is_frame_getting.lock().unwrap());
