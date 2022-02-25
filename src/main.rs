@@ -319,11 +319,11 @@ async fn connect_nats() -> Connection {
 
 
             println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
-            count_full += 1;
-            if count_full == 200 {
-                println!("Stop pipeline");
-                *is_frame_getting.lock().unwrap() = false;
-            }
+            // count_full += 1;
+            // if count_full == 200 {
+            //     println!("Stop pipeline");
+            //     *is_frame_getting.lock().unwrap() = false;
+            // }
         //      let img_result = 
         //          image::load_from_memory_with_format(&new_image, ImageFormat::Jpeg);
         //      match img_result {
