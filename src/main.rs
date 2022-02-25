@@ -237,38 +237,38 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                if let Some(is_frame_getting) = is_frame_getting_full_weak.upgrade() {
-                    if !*is_frame_getting.lock().unwrap() {
-                        // if let Some(pipeline) = pipeline_weak.upgrade() {
-                        //     println!("Current state: {:?}", pipeline.current_state());
-                        // }
+                // if let Some(is_frame_getting) = is_frame_getting_full_weak.upgrade() {
+                //     if !*is_frame_getting.lock().unwrap() {
+                //         // if let Some(pipeline) = pipeline_weak.upgrade() {
+                //         //     println!("Current state: {:?}", pipeline.current_state());
+                //         // }
                         
-                        // std::thread::sleep(std::time::Duration::from_secs(1));
-                        println!("Send EOS.....");
-                            // appsink_full.send_event(gst::event::Eos::new());
-                            // if let Some(q1) = q1_weak_full.upgrade() {
-                            //     q1.send_event(gst::event::Eos::new());
-                            // }
-                            // if let Some(q2) = q2_weak_full.upgrade() {
-                            //     q2.send_event(gst::event::Eos::new());
-                            // }
-                        if let Some(pipeline) = pipeline_weak_full.upgrade() {
-                            // pipeline.set_state(gst::State::Null);
-                            // println!("Current state: {:?}", pipeline.current_state());
-                            // pipeline.set_state(gst::State::Playing);
-                            // println!("Current state: {:?}", pipeline.current_state());
-                        //     println!("Pipeline after upgrade: {:?}", pipeline);
-                        //     let ev = gst::event::Eos::new();
-                        //     let pipeline_weak = pipeline_weak.clone();
-                        //         if let Some(pipeline) = pipeline_weak.upgrade() {
-                        //             // let res = pipeline.send_event(ev);
-                            pipeline.send_event(gst::event::Eos::new());
-                        //             // println!("send event: {}", res);
-                        //         }
-                        }
-                    }
-                    // return Err(gst::FlowError::Eos);
-                }      
+                //         // std::thread::sleep(std::time::Duration::from_secs(1));
+                //         println!("Send EOS.....");
+                //             // appsink_full.send_event(gst::event::Eos::new());
+                //             // if let Some(q1) = q1_weak_full.upgrade() {
+                //             //     q1.send_event(gst::event::Eos::new());
+                //             // }
+                //             // if let Some(q2) = q2_weak_full.upgrade() {
+                //             //     q2.send_event(gst::event::Eos::new());
+                //             // }
+                //         if let Some(pipeline) = pipeline_weak_full.upgrade() {
+                //             // pipeline.set_state(gst::State::Null);
+                //             // println!("Current state: {:?}", pipeline.current_state());
+                //             // pipeline.set_state(gst::State::Playing);
+                //             // println!("Current state: {:?}", pipeline.current_state());
+                //         //     println!("Pipeline after upgrade: {:?}", pipeline);
+                //         //     let ev = gst::event::Eos::new();
+                //         //     let pipeline_weak = pipeline_weak.clone();
+                //         //         if let Some(pipeline) = pipeline_weak.upgrade() {
+                //         //             // let res = pipeline.send_event(ev);
+                //             pipeline.send_event(gst::event::Eos::new());
+                //         //             // println!("send event: {}", res);
+                //         //         }
+                //         }
+                //     }
+                //     // return Err(gst::FlowError::Eos);
+                // }      
 
         //        println!("Buffer {:?}", buffer);
         // if count == 50 {
@@ -334,7 +334,7 @@ async fn connect_nats() -> Connection {
 
             println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
             count_full += 1;
-            if count_full == 10 {
+            if count_full == 100 {
                 println!("Stop pipeline");
                 *is_frame_getting.lock().unwrap() = false;
             }
@@ -522,25 +522,26 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
             MessageView::Eos(..) => {
                 // pipeline.set_state(gst::State::Null)?;
                 println!("Got Eos message, done");
-                let cam_dist = Distributor::named(format!("rtsp-{}", id.clone()));
-                        cam_dist.tell_one(id.clone()).map_err(|e| {
-                            println!("Error: {:?}", e);
-                        });;
                 break;
             },
             MessageView::Error(err) => {
-                pipeline.set_state(gst::State::Null)?;
+                // pipeline.set_state(gst::State::Null)?;
                 println!("{:?} - Error: {:?}",id, err.error());
-                return Err(ErrorMessage {
-                    src: msg
-                        .src()
-                        .map(|s| String::from(s.path_string()))
-                        .unwrap_or_else(|| String::from("None")),
-                    error: err.error().to_string(),
-                    debug: err.debug(),
-                    source: err.error(),
-                }
-                .into());
+                // return Err(ErrorMessage {
+                //     src: msg
+                //         .src()
+                //         .map(|s| String::from(s.path_string()))
+                //         .unwrap_or_else(|| String::from("None")),
+                //     error: err.error().to_string(),
+                //     debug: err.debug(),
+                //     source: err.error(),
+                // }
+                // .into());
+                break;
+            }
+            _ if !*is_frame_getting.lock().unwrap() => {
+                println!("break main loop");
+                break;
             }
             _ => (),
         }
@@ -557,7 +558,7 @@ async fn main() {
     
 
     let urls = [
-        // "rtsp://10.50.29.36/1/h264major",
+        "rtsp://10.50.29.96/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.31.172/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
@@ -580,13 +581,13 @@ async fn main() {
         // "rtsp://10.50.13.251/1/h264major",
         // "rtsp://10.50.13.252/1/h264major",
         // "rtsp://10.50.13.253/1/h264major",
-        "rtsp://10.50.13.254/1/h264major",
+        // "rtsp://10.50.13.254/1/h264major",
     ];
 
     Bastion::init();
 
     let cam_ip = vec![
-        // 36,
+        96,
         // 171,
         // 172, 
         // 231, 
@@ -609,7 +610,7 @@ async fn main() {
         // 251,
         // 252, 
         // 253, 
-        254,
+        // 254,
     ];
 
     for ip in &cam_ip {
