@@ -511,19 +511,19 @@ fn main_loop(pipeline: gst::Pipeline, id: String, is_frame_getting: Arc<Mutex<bo
                 break;
             },
             MessageView::Error(err) => {
-                // pipeline.set_state(gst::State::Null)?;
+                pipeline.set_state(gst::State::Null)?;
                 println!("{:?} - Error: {:?}",id, err.error());
-                // return Err(ErrorMessage {
-                //     src: msg
-                //         .src()
-                //         .map(|s| String::from(s.path_string()))
-                //         .unwrap_or_else(|| String::from("None")),
-                //     error: err.error().to_string(),
-                //     debug: err.debug(),
-                //     source: err.error(),
-                // }
-                // .into());
-                break;
+                return Err(ErrorMessage {
+                    src: msg
+                        .src()
+                        .map(|s| String::from(s.path_string()))
+                        .unwrap_or_else(|| String::from("None")),
+                    error: err.error().to_string(),
+                    debug: err.debug(),
+                    source: err.error(),
+                }
+                .into());
+                // break;
             }
             _ if !*is_frame_getting.lock().unwrap() => {
                 println!("break main loop");
