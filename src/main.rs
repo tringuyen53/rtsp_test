@@ -100,11 +100,11 @@ async fn connect_nats() -> Connection {
         application/x-rtp, media=video, encoding-name=H264!
         rtph264depay ! queue leaky=2 !
         h264parse ! tee name=thumbnail_video !
-        queue leaky=2 flush-on-eos=true name=q1 ! vaapih264dec !
+        queue leaky=2 ! vaapih264dec !
         videorate ! video/x-raw, framerate=3/1 !
         vaapipostproc ! vaapijpegenc !
         appsink name=app1 max-buffers=100 emit-signals=false drop=true
-        thumbnail_video. ! queue leaky=2 flush-on-eos=true name=q2 ! vaapih264dec !
+        thumbnail_video. ! queue leaky=2 ! vaapih264dec !
         videorate ! video/x-raw, framerate=3/1 !
         vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc !
         appsink name=app2 max-buffers=100 emit-signals=false drop=true" ,
@@ -118,18 +118,6 @@ async fn connect_nats() -> Connection {
     .expect("src element not found")
     .downcast::<gst::Element>()
     .expect("src element is expected to be an appsink!");
-
-    let q1 = pipeline
-    .by_name("q1")
-    .expect("q1 element not found")
-    .downcast::<gst::Element>()
-    .expect("q1 element is expected to be an appsink!");
-
-    let q2 = pipeline
-    .by_name("q2")
-    .expect("q2 element not found")
-    .downcast::<gst::Element>()
-    .expect("q2 element is expected to be an appsink!");
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
@@ -193,7 +181,7 @@ async fn connect_nats() -> Connection {
     //         println!("Error: {:?}", e);
     //     }
     // }
-    println!("pipeline: {:?} - {:?}", uri, pipeline);
+    // println!("pipeline: {:?} - {:?}", uri, pipeline);
 
     // let appsink = sink
     //     .dynamic_cast::<gst_app::AppSink>()
@@ -208,8 +196,6 @@ async fn connect_nats() -> Connection {
     let id_1 = id.clone();
     let pipeline_weak_full = gst::prelude::ObjectExt::downgrade(&pipeline);
     let pipeline_weak_thumb = gst::prelude::ObjectExt::downgrade(&pipeline);
-    let q1_weak_full = gst::prelude::ObjectExt::downgrade(&q1);
-    let q2_weak_full = gst::prelude::ObjectExt::downgrade(&q2);
     let src_weak = gst::prelude::ObjectExt::downgrade(&src);
     // let is_frame_getting_weak = Arc::downgrade(&is_frame_getting);
     let is_frame_getting_full_weak = Arc::downgrade(&is_frame_getting);
@@ -334,7 +320,7 @@ async fn connect_nats() -> Connection {
 
             println!("[FULL] Timestamp: {:?} - cam_id: {:?}", std::time::SystemTime::now(), id_1);
             count_full += 1;
-            if count_full == 100 {
+            if count_full == 200 {
                 println!("Stop pipeline");
                 *is_frame_getting.lock().unwrap() = false;
             }
