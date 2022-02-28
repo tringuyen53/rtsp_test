@@ -243,15 +243,15 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-             let img_result = 
-                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-             match img_result {
-                 Ok(image) => {
-                         image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
-                         count_thumb += 1;
-                    },
-                 Err(_) => (),
-             };
+            //  let img_result = 
+            //      image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //  match img_result {
+            //      Ok(image) => {
+            //              image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
+            //              count_thumb += 1;
+            //         },
+            //      Err(_) => (),
+            //  };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
