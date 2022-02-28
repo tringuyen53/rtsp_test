@@ -89,7 +89,10 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! image/jpeg, width=1920, height=1080, framerate=0/1 ! vaapijpegdec ! videorate ! video/x-raw, framerate=3/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=sink emit-signals=false drop=true" ,
+        "souphttpsrc location={} ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue=leaky=2 !
+        videorate ! video/x-raw, framerate=3/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
+        thumbnail_video. ! queue leaky=2 ! 
+        videorate ! video/x-raw, framerate=3/1 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -97,16 +100,23 @@ async fn connect_nats() -> Connection {
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
     // Get access to the appsink element.
-    let appsink = pipeline
+    let appsink1 = pipeline
+        .by_name("app1")
+        .expect("Sink element not found")
+        .downcast::<gst_app::AppSink>()
+        .expect("Sink element is expected to be an appsink!");
+
+    let appsink2 = pipeline
         .by_name("sink")
         .expect("Sink element not found")
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    let mut count = 0;
+    let mut count_full = 0;
+    let mut count_thumb =0;
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
-    appsink.set_callbacks(
+    appsink1.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
@@ -159,8 +169,84 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("img-{}-{}.jpg", id, count)).unwrap();
-                         count += 1;
+                         image.save(format!("full-{}-{}.jpg", id, count)).unwrap();
+                         count_full += 1;
+                    },
+                 Err(_) => (),
+             };
+            // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+            // let result = throttle.accept();
+            // if result.is_ok() {
+                    // println!("Throttle START!!");
+                    // let transcode_actor = Distributor::named("transcode");
+                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                    
+                    drop(samples);
+                    drop(map);
+                    drop(buffer);
+                    drop(sample);
+                // }
+                Ok(gst::FlowSuccess::Ok)
+                // Err(gst::FlowError::Error)
+            })
+            .build(),
+    );
+
+    appsink2.set_callbacks(
+        gst_app::AppSinkCallbacks::builder()
+            // Add a handler to the "new-sample" signal.
+            .new_sample(move |appsink| {
+                // Pull the sample in question out of the appsink's buffer.
+                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+               //println!("Sample: {:?}", sample);
+                let buffer = sample.buffer().ok_or_else(|| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to get buffer from appsink")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+        //        println!("Buffer {:?}", buffer);
+                
+
+                let map = buffer.map_readable().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to map buffer readable")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+  //              println!("xxxxxxxx Map {:?}", map);   
+
+                let samples = map.as_slice_of::<u8>().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                       ("Failed to interprete buffer as S16 PCM")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+                println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
+
+                // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
+                // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
+                 //SAVE IMAGE
+                 //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
+                 //file.write_all(samples);
+
+             let img_result = 
+                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+             match img_result {
+                 Ok(image) => {
+                         image.save(format!("thumb-{}-{}.jpg", id, count)).unwrap();
+                         count_thumb += 1;
                     },
                  Err(_) => (),
              };
