@@ -89,8 +89,8 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} do-timestamp=true is-live=true ! jpegparse ! vaapijpegdec !
-        videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false" ,
+        "souphttpsrc location={} ! jpegparse ! vaapijpegdec !
+        vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -156,6 +156,10 @@ async fn connect_nats() -> Connection {
 
                     gst::FlowError::Error
                 })?;
+
+                let caps = sample.caps().expect("Sample without caps");
+                let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                println!("Info: {:?}", info);
 
                 println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
 
