@@ -169,7 +169,7 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("full-{}-{}.jpg", id, count)).unwrap();
+                         image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
                          count_full += 1;
                     },
                  Err(_) => (),
@@ -245,7 +245,7 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("thumb-{}-{}.jpg", id, count)).unwrap();
+                         image.save(format!("thumb-{}-{}.jpg", id, count_thumb)).unwrap();
                          count_thumb += 1;
                     },
                  Err(_) => (),
