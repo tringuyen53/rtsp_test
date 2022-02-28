@@ -89,8 +89,10 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} do-timestamp=true is_live=true ! jpegparse ! vaapijpegdec !
-        vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false" ,
+        "souphttpsrc location={} is-live=true ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
+        videorate ! video/x-raw, framerate=5/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
+        thumbnail_video. ! queue leaky=2 ! 
+        videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -105,11 +107,11 @@ async fn connect_nats() -> Connection {
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    // let appsink2 = pipeline
-    //     .by_name("app2")
-    //     .expect("Sink element not found")
-    //     .downcast::<gst_app::AppSink>()
-    //     .expect("Sink element is expected to be an appsink!");
+    let appsink2 = pipeline
+        .by_name("app2")
+        .expect("Sink element not found")
+        .downcast::<gst_app::AppSink>()
+        .expect("Sink element is expected to be an appsink!");
 
     let mut count_full = 0;
     let mut count_thumb= 0;
@@ -157,10 +159,6 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                let caps = sample.caps().expect("Sample without caps");
-                let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
-                println!("Info: {:?}", info);
-
                 println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
@@ -196,81 +194,81 @@ async fn connect_nats() -> Connection {
             .build(),
     );
 
-//     appsink2.set_callbacks(
-//         gst_app::AppSinkCallbacks::builder()
-//             // Add a handler to the "new-sample" signal.
-//             .new_sample(move |appsink| {
-//                 // Pull the sample in question out of the appsink's buffer.
-//                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-//                //println!("Sample: {:?}", sample);
-//                 let buffer = sample.buffer().ok_or_else(|| {
-//                     element_error!(
-//                         appsink,
-//                         gst::ResourceError::Failed,
-//                         ("Failed to get buffer from appsink")
-//                     );
+    appsink2.set_callbacks(
+        gst_app::AppSinkCallbacks::builder()
+            // Add a handler to the "new-sample" signal.
+            .new_sample(move |appsink| {
+                // Pull the sample in question out of the appsink's buffer.
+                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+               //println!("Sample: {:?}", sample);
+                let buffer = sample.buffer().ok_or_else(|| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to get buffer from appsink")
+                    );
 
-//                     gst::FlowError::Error
-//                 })?;
+                    gst::FlowError::Error
+                })?;
 
-//         //        println!("Buffer {:?}", buffer);
+        //        println!("Buffer {:?}", buffer);
                 
 
-//                 let map = buffer.map_readable().map_err(|_| {
-//                     element_error!(
-//                         appsink,
-//                         gst::ResourceError::Failed,
-//                         ("Failed to map buffer readable")
-//                     );
+                let map = buffer.map_readable().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to map buffer readable")
+                    );
 
-//                     gst::FlowError::Error
-//                 })?;
-//   //              println!("xxxxxxxx Map {:?}", map);   
+                    gst::FlowError::Error
+                })?;
+  //              println!("xxxxxxxx Map {:?}", map);   
 
-//                 let samples = map.as_slice_of::<u8>().map_err(|_| {
-//                     element_error!(
-//                         appsink,
-//                         gst::ResourceError::Failed,
-//                        ("Failed to interprete buffer as S16 PCM")
-//                     );
+                let samples = map.as_slice_of::<u8>().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                       ("Failed to interprete buffer as S16 PCM")
+                    );
 
-//                     gst::FlowError::Error
-//                 })?;
+                    gst::FlowError::Error
+                })?;
 
-//                 println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
+                println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
 
-//                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
-//                 // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
-//                  //SAVE IMAGE
-//                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
-//                  //file.write_all(samples);
+                // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
+                // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
+                 //SAVE IMAGE
+                 //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
+                 //file.write_all(samples);
 
-//             //  let img_result = 
-//             //      image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-//             //  match img_result {
-//             //      Ok(image) => {
-//             //              image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
-//             //              count_thumb += 1;
-//             //         },
-//             //      Err(_) => (),
-//             //  };
-//             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
-//             // let result = throttle.accept();
-//             // if result.is_ok() {
-//                     // println!("Throttle START!!");
-//                     // let transcode_actor = Distributor::named("transcode");
-//                     // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+            //  let img_result = 
+            //      image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //  match img_result {
+            //      Ok(image) => {
+            //              image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
+            //              count_thumb += 1;
+            //         },
+            //      Err(_) => (),
+            //  };
+            // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+            // let result = throttle.accept();
+            // if result.is_ok() {
+                    // println!("Throttle START!!");
+                    // let transcode_actor = Distributor::named("transcode");
+                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
                     
-//                     drop(samples);
-//                     drop(map);
-//                     drop(buffer);
-//                     drop(sample);
-//                 // }
-//                 Ok(gst::FlowSuccess::Ok)
-//                 // Err(gst::FlowError::Error)
-//             })
-//             .build(),
-//     );
+                    drop(samples);
+                    drop(map);
+                    drop(buffer);
+                    drop(sample);
+                // }
+                Ok(gst::FlowSuccess::Ok)
+                // Err(gst::FlowError::Error)
+            })
+            .build(),
+    );
 
     Ok(pipeline)
 }
