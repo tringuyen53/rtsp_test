@@ -90,9 +90,9 @@ async fn connect_nats() -> Connection {
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
         "souphttpsrc location={} is-live=true do-timestamp=true ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
-        videorate ! video/x-raw, framerate=5/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
+        videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
         thumbnail_video. ! queue leaky=2 ! 
-        videorate ! video/x-raw, framerate=5/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
+        videorate ! video/x-raw, framerate=2/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
