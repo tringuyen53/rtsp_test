@@ -108,7 +108,7 @@ async fn connect_nats() -> Connection {
         .expect("Sink element is expected to be an appsink!");
 
     let appsink2 = pipeline
-        .by_name("sink")
+        .by_name("app2")
         .expect("Sink element not found")
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
