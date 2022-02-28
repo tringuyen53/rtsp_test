@@ -87,14 +87,29 @@ async fn connect_nats() -> Connection {
     //     "rtspsrc location={} latency=100 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
     //     uri
     // ))?
-        //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} is-live=true do-timestamp=true ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
-        videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
-        thumbnail_video. ! queue leaky=2 ! 
-        videorate ! video/x-raw, framerate=2/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
-        uri
+        "rtspsrc location={} name=src !
+        application/x-rtp, media=video, encoding-name=H264!
+        rtph264depay ! queue leaky=2 !
+        h264parse ! tee name=thumbnail_video !
+        queue leaky=2 ! vaapih264dec !
+        videorate ! video/x-raw, framerate=3/1 !
+        vaapipostproc ! video/x-raw, width=1920, height=1080 ! vaapijpegenc !
+        appsink name=app1 max-buffers=100 emit-signals=false drop=true sync=false
+        thumbnail_video. ! queue leaky=2 ! vaapih264dec !
+        videorate ! video/x-raw, framerate=3/1 !
+        vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc !
+        appsink name=app2 max-buffers=100 emit-signals=false drop=true sync=false",
+        uri,
     ))?
+        //MJPEG
+    // let pipeline = gst::parse_launch(&format!(
+    //     "souphttpsrc location={} is-live=true do-timestamp=true ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
+    //     videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
+    //     thumbnail_video. ! queue leaky=2 ! 
+    //     videorate ! video/x-raw, framerate=2/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
+    //     uri
+    // ))?
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
 
@@ -317,7 +332,7 @@ async fn main() {
     
 
     let urls = [
-        // "rtsp://10.50.29.36/1/h264major",
+        "rtsp://10.50.29.96/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
         // "rtsp://10.50.13.233/1/h264major",
         // "rtsp://10.50.13.234/1/h264major",
@@ -356,7 +371,7 @@ async fn main() {
         // "http://10.50.13.249/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.252/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.252/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.254/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.254/mjpgstreamreq/1/image.jpg",
     ];
 
     Bastion::init();
@@ -371,7 +386,7 @@ async fn main() {
     }).map_err(|_| println!("Error"));
 
     let cam_ip = vec![
-        // 36, 
+        96, 
         // 231, 
         // 233, 
         // 234, 
@@ -390,7 +405,7 @@ async fn main() {
         // 249, 
         // 252, 
         // 253, 
-        254,
+        // 254,
     ];
 
     for ip in &cam_ip {
