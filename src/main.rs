@@ -89,7 +89,7 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! jpegparse ! vaapijpegdec !
+        "souphttpsrc location={} do-timestamp=true is-live=true ! jpegparse ! vaapijpegdec !
         videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false" ,
         uri
     ))?
