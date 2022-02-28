@@ -99,6 +99,7 @@ async fn connect_nats() -> Connection {
     .expect("Expected a gst::Pipeline");
 
     println!("pipeline: {:?} - {:?}", uri, pipeline);
+    
     // Get access to the appsink element.
     let appsink1 = pipeline
         .by_name("app1")
@@ -192,6 +193,7 @@ async fn connect_nats() -> Connection {
             .build(),
     );
 
+    let id_2 = id.clone();
     appsink2.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
@@ -233,7 +235,7 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
+                println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
                 // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
