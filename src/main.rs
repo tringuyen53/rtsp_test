@@ -89,10 +89,10 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
-        videorate ! video/x-raw, framerate=3/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
+        "souphttpsrc location={} ! queue leaky=2 ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
+        videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
         thumbnail_video. ! queue leaky=2 ! 
-        videorate ! video/x-raw, framerate=3/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
+        videorate ! video/x-raw, framerate=2/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -167,15 +167,15 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-             let img_result = 
-                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-             match img_result {
-                 Ok(image) => {
-                         image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                         count_full += 1;
-                    },
-                 Err(_) => (),
-             };
+            //  let img_result = 
+            //      image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //  match img_result {
+            //      Ok(image) => {
+            //              image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+            //              count_full += 1;
+            //         },
+            //      Err(_) => (),
+            //  };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
