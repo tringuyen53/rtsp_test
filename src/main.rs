@@ -114,7 +114,8 @@ async fn connect_nats() -> Connection {
         .expect("Sink element is expected to be an appsink!");
 
     let mut count_full = 0;
-    let mut count_thumb =0;
+    let mut count_thumb= 0;
+    let id_2 = id.clone();
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink1.set_callbacks(
@@ -193,7 +194,6 @@ async fn connect_nats() -> Connection {
             .build(),
     );
 
-    let id_2 = id.clone();
     appsink2.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
