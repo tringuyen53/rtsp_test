@@ -89,7 +89,7 @@ async fn connect_nats() -> Connection {
     // ))?
         //MJPEG
     let pipeline = gst::parse_launch(&format!(
-        "souphttpsrc location={} ! image/jpeg, width=1920, height=1080, framerate=0/1 ! vaapijpegdec ! vaapijpegenc ! appsink name=sink emit-signals=false drop=true" ,
+        "souphttpsrc location={} ! image/jpeg, width=1920, height=1080 ! vaapijpegdec ! videorate ! video/x-raw, framerate=3/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=sink emit-signals=false drop=true" ,
         uri
     ))?
     .downcast::<gst::Pipeline>()
@@ -155,15 +155,15 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            //  let img_result = 
-            //      image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-            //  match img_result {
-            //      Ok(image) => {
-            //              image.save(format!("img-{}-{}.jpg", id, count)).unwrap();
-            //              count += 1;
-            //         },
-            //      Err(_) => (),
-            //  };
+             let img_result = 
+                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+             match img_result {
+                 Ok(image) => {
+                         image.save(format!("img-{}-{}.jpg", id, count)).unwrap();
+                         count += 1;
+                    },
+                 Err(_) => (),
+             };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -249,25 +249,25 @@ async fn main() {
         // "rtsp://10.50.13.252/1/h264major",
         // "rtsp://10.50.13.253/1/h264major",
         // "rtsp://10.50.13.254/1/h264major",
-        "http://10.50.29.36/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.234/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.235/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.236/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.237/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.238/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.239/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.240/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.241/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.242/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.243/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.244/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.245/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.248/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.249/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.252/mjpgstreamreq/1/image.jpg",
-        "http://10.50.13.252/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.29.36/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.234/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.235/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.236/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.237/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.238/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.239/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.240/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.241/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.242/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.243/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.244/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.245/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.248/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.249/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.252/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.13.252/mjpgstreamreq/1/image.jpg",
         "http://10.50.13.254/mjpgstreamreq/1/image.jpg",
     ];
 
@@ -283,25 +283,25 @@ async fn main() {
     }).map_err(|_| println!("Error"));
 
     let cam_ip = vec![
-        36, 
-        231, 
-        233, 
-        234, 
-        235, 
-        236, 
-        237, 
-        238, 
-        239, 
-        240,
-        241,
-        242, 
-        243, 
-        244, 
-        245, 
-        248, 
-        249, 
-        252, 
-        253, 
+        // 36, 
+        // 231, 
+        // 233, 
+        // 234, 
+        // 235, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
+        // 240,
+        // 241,
+        // 242, 
+        // 243, 
+        // 244, 
+        // 245, 
+        // 248, 
+        // 249, 
+        // 252, 
+        // 253, 
         254,
     ];
 
