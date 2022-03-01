@@ -168,22 +168,22 @@ async fn connect_nats() -> Connection {
     let capsfilter = gst::ElementFactory::make("capsfilter", Some("capsfilter"))
         .map_err(|_| MissingElement("capsfilter"))?;
     let caps = gst::Caps::builder("video/x-raw")
-        .field("framerate", gst::Fraction::new(fullscreen_fps as i32, 1))
+        .field("framerate", gst::Fraction::new(3, 1))
         .build();
     // Initialize capsfilter for vaapipostproc
     let capsfilter_2 = gst::ElementFactory::make("capsfilter", Some("capsfilter_2"))
         .map_err(|_| MissingElement("capsfilter"))?;
-    let caps_2 = gst::Caps::new_simple("video/x-raw", &[("width", &1920), ("height", &1080)]);
+    let caps_2 = gst::Caps::new_simple("video/x-raw", &[("width", &(1920 as i32)), ("height", &(1080 as i32))]);
     // Initialize capsfilter for videorate_2
     let capsfilter_3 = gst::ElementFactory::make("capsfilter", Some("capsfilter_3"))?;
     let caps_3 = gst::Caps::builder("video/x-raw")
-        .field("framerate", gst::Fraction::new(thumbnail_fps as i32, 1))
+        .field("framerate", gst::Fraction::new(3, 1))
         .build();
     // Initialize capsfilter for vaapipostproc_2
     let capsfilter_4 = gst::ElementFactory::make("capsfilter", Some("capsfilter_4"))?;
     let caps_4 = gst::Caps::builder("video/x-raw")
-        .field("width", *width.read().unwrap() as i32)
-        .field("height", *height.read().unwrap() as i32)
+        .field("width", 720 as i32)
+        .field("height", 480 as i32)
         .build();
     // Initialize vaapipostproc
     let vaapipostproc = gst::ElementFactory::make("vaapipostproc", Some("vaapipostproc"))
@@ -202,7 +202,7 @@ async fn connect_nats() -> Connection {
     let sink_2 = gst::ElementFactory::make("appsink", Some("sink_2"))
         .map_err(|_| MissingElement("appsink"))?;
 
-    src.set_property("location", &rtsp_url);
+    src.set_property("location", &uri);
     queue.set_property_from_str("leaky", "downstream");
     queue_2.set_property_from_str("leaky", "downstream");
     queue_3.set_property_from_str("leaky", "downstream");
