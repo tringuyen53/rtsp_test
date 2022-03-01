@@ -365,16 +365,18 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-             let img_result = 
-                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-             match img_result {
-                 Ok(image) => {
-                        //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                        image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-                         count_full += 1;
-                    },
-                 Err(_) => (),
-             };
+            if id == "171" {
+                let img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match img_result {
+                    Ok(image) => {
+                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                           image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                            count_full += 1;
+                       },
+                    Err(_) => (),
+                };
+            }
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -518,25 +520,25 @@ async fn main() {
     let urls = [
         // "rtsp://10.50.29.96/1/h264major",
         "rtsp://10.50.31.171/1/h264major",
-        // "rtsp://10.50.13.231/1/h264major",
-        // "rtsp://10.50.13.233/1/h264major",
-        // "rtsp://10.50.13.234/1/h264major",
-        // "rtsp://10.50.13.235/1/h264major",
-        // "rtsp://10.50.13.236/1/h264major",
-        // "rtsp://10.50.13.237/1/h264major",
-        // "rtsp://10.50.13.238/1/h264major",
-        // "rtsp://10.50.13.239/1/h264major",
-        // "rtsp://10.50.13.240/1/h264major",
-        // "rtsp://10.50.13.241/1/h264major",
-        // "rtsp://10.50.13.242/1/h264major",
-        // "rtsp://10.50.13.243/1/h264major",
-        // "rtsp://10.50.13.244/1/h264major",
-        // "rtsp://10.50.13.245/1/h264major",
-        // "rtsp://10.50.13.248/1/h264major",
-        // "rtsp://10.50.13.249/1/h264major",
-        // "rtsp://10.50.13.252/1/h264major",
-        // "rtsp://10.50.13.253/1/h264major",
-        // "rtsp://10.50.13.254/1/h264major",
+        "rtsp://10.50.13.231/1/h264major",
+        "rtsp://10.50.13.233/1/h264major",
+        "rtsp://10.50.13.234/1/h264major",
+        "rtsp://10.50.13.235/1/h264major",
+        "rtsp://10.50.13.236/1/h264major",
+        "rtsp://10.50.13.237/1/h264major",
+        "rtsp://10.50.13.238/1/h264major",
+        "rtsp://10.50.13.239/1/h264major",
+        "rtsp://10.50.13.240/1/h264major",
+        "rtsp://10.50.13.241/1/h264major",
+        "rtsp://10.50.13.242/1/h264major",
+        "rtsp://10.50.13.243/1/h264major",
+        "rtsp://10.50.13.244/1/h264major",
+        "rtsp://10.50.13.245/1/h264major",
+        "rtsp://10.50.13.248/1/h264major",
+        "rtsp://10.50.13.249/1/h264major",
+        "rtsp://10.50.13.252/1/h264major",
+        "rtsp://10.50.13.253/1/h264major",
+        "rtsp://10.50.13.254/1/h264major",
         // "http://10.50.29.36/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
@@ -573,25 +575,25 @@ async fn main() {
     let cam_ip = vec![
         // 96, 
         171,
-        // 231, 
-        // 233, 
-        // 234, 
-        // 235, 
-        // 236, 
-        // 237, 
-        // 238, 
-        // 239, 
-        // 240,
-        // 241,
-        // 242, 
-        // 243, 
-        // 244, 
-        // 245, 
-        // 248, 
-        // 249, 
-        // 252, 
-        // 253, 
-        // 254,
+        231, 
+        233, 
+        234, 
+        235, 
+        236, 
+        237, 
+        238, 
+        239, 
+        240,
+        241,
+        242, 
+        243, 
+        244, 
+        245, 
+        248, 
+        249, 
+        252, 
+        253, 
+        254,
     ];
 
     for ip in &cam_ip {
