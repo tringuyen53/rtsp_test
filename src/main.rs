@@ -69,6 +69,9 @@ async fn connect_nats() -> Connection {
  fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
+    let mut throttle_record = Throttle::new(std::time::Duration::from_secs(1), 1);
+
+
     // Create our pipeline from a pipeline description string.
     // let pipeline = gst::parse_launch(&format!(
     //     "rtspsrc location={} latency=0 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih264dec ! queue ! videorate ! videoconvert ! videoscale ! jpegenc !  appsink name=sink ",
@@ -364,6 +367,10 @@ async fn connect_nats() -> Connection {
     let mut count_record = 0;
     let id_2 = id.clone();
     let id_3 = id.clone();
+
+    let mut throttle_record_full = throttle_record.clone();
+
+
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -601,6 +608,15 @@ async fn connect_nats() -> Connection {
     );
 
     Ok(pipeline)
+}
+
+fn send_frame(
+    appsink: &gst_app::AppSink,
+    url: &str,
+    width: usize,
+    height: usize,
+) -> Result<gst::FlowSuccess, gst::FlowError> {
+
 }
 
 fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {

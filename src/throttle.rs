@@ -1,4 +1,6 @@
 use std::time::{Duration, Instant};
+
+#[derive(Debug, Copy, Clone)]
 pub struct Throttle {
     timeout: u128,
     last: Instant,
