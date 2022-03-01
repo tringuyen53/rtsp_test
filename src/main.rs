@@ -224,22 +224,26 @@ async fn connect_nats() -> Connection {
     // Initialize vaapijpegenc_3
     let vaapijpegenc_3 = gst::ElementFactory::make("vaapijpegenc", Some("vaapijpegenc_3"))
         .map_err(|_| MissingElement("vaapijpegenc"))?;
+
     // Initialize AppSink 3
     let sink_3 = gst::ElementFactory::make("appsink", Some("sink_3"))
         .map_err(|_| MissingElement("appsink"))?;
     src.set_property("location", &uri);
+
     queue.set_property_from_str("leaky", "downstream");
     queue_2.set_property_from_str("leaky", "downstream");
     queue_3.set_property_from_str("leaky", "downstream");
     queue_4.set_property_from_str("leaky", "downstream");
     queue_5.set_property_from_str("leaky", "downstream");
     queue_6.set_property_from_str("leaky", "downstream");
+
     capsfilter.set_property("caps", &caps);
     capsfilter_2.set_property("caps", &caps_2);
     capsfilter_3.set_property("caps", &caps_3);
     capsfilter_4.set_property("caps", &caps_4);
     capsfilter_5.set_property("caps", &caps_5);
     capsfilter_6.set_property("caps", &caps_6);
+
     // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
     let elements = &[
         &src,
@@ -495,7 +499,7 @@ async fn connect_nats() -> Connection {
                     drop(buffer);
                     drop(sample);
                 // }
-                Ok(gst::FlowSuccess::Ok)
+                // Ok(gst::FlowSuccess::Ok)
                 // Err(gst::FlowError::Error)
             })
             .build(),
@@ -613,7 +617,6 @@ fn send_frame(
                          gst::FlowError::Error
                      })?;
      
-                     println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
 
     println!("[RECORD] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_3, samples.len());
 
