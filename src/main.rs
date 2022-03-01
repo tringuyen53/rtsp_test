@@ -570,18 +570,18 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            if id_3 == "171" {
-                let img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match img_result {
-                    Ok(image) => {
-                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                           image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-                            count_record += 1;
-                       },
-                    Err(_) => (),
-                };
-            }
+            // if id_3 == "171" {
+            //     let img_result = 
+            //         image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //     match img_result {
+            //         Ok(image) => {
+            //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+            //                image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+            //                 count_record += 1;
+            //            },
+            //         Err(_) => (),
+            //     };
+            // }
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
