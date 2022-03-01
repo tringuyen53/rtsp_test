@@ -456,44 +456,17 @@ async fn connect_nats() -> Connection {
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
-                // Pull the sample in question out of the appsink's buffer.
-                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-               //println!("Sample: {:?}", sample);
-                let buffer = sample.buffer().ok_or_else(|| {
-                    element_error!(
+
+
+                if throttle_record_full.accept().is_ok() {
+                    send_frame(
                         appsink,
-                        gst::ResourceError::Failed,
-                        ("Failed to get buffer from appsink")
-                    );
+                        &id_3,
+                    )
+                } else {
+                    Ok(gst::FlowSuccess::Ok)
+                }
 
-                    gst::FlowError::Error
-                })?;
-
-        //        println!("Buffer {:?}", buffer);
-                
-
-                let map = buffer.map_readable().map_err(|_| {
-                    element_error!(
-                        appsink,
-                        gst::ResourceError::Failed,
-                        ("Failed to map buffer readable")
-                    );
-
-                    gst::FlowError::Error
-                })?;
-  //              println!("xxxxxxxx Map {:?}", map);   
-
-                let samples = map.as_slice_of::<u8>().map_err(|_| {
-                    element_error!(
-                        appsink,
-                        gst::ResourceError::Failed,
-                       ("Failed to interprete buffer as S16 PCM")
-                    );
-
-                    gst::FlowError::Error
-                })?;
-
-                println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
                 // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
@@ -569,7 +542,6 @@ async fn connect_nats() -> Connection {
                     gst::FlowError::Error
                 })?;
 
-                println!("[RECORD] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_3, samples.len());
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
                 // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
@@ -577,18 +549,7 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            if id_3 == "171" {
-                let img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match img_result {
-                    Ok(image) => {
-                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                           image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-                            count_record += 1;
-                       },
-                    Err(_) => (),
-                };
-            }
+
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -612,10 +573,65 @@ async fn connect_nats() -> Connection {
 
 fn send_frame(
     appsink: &gst_app::AppSink,
-    url: &str,
-    width: usize,
-    height: usize,
+    id_3: &str,
 ) -> Result<gst::FlowSuccess, gst::FlowError> {
+
+                    // Pull the sample in question out of the appsink's buffer.
+                    let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+                    //println!("Sample: {:?}", sample);
+                     let buffer = sample.buffer().ok_or_else(|| {
+                         element_error!(
+                             appsink,
+                             gst::ResourceError::Failed,
+                             ("Failed to get buffer from appsink")
+                         );
+     
+                         gst::FlowError::Error
+                     })?;
+     
+             //        println!("Buffer {:?}", buffer);
+                     
+     
+                     let map = buffer.map_readable().map_err(|_| {
+                         element_error!(
+                             appsink,
+                             gst::ResourceError::Failed,
+                             ("Failed to map buffer readable")
+                         );
+     
+                         gst::FlowError::Error
+                     })?;
+       //              println!("xxxxxxxx Map {:?}", map);   
+     
+                     let samples = map.as_slice_of::<u8>().map_err(|_| {
+                         element_error!(
+                             appsink,
+                             gst::ResourceError::Failed,
+                            ("Failed to interprete buffer as S16 PCM")
+                         );
+     
+                         gst::FlowError::Error
+                     })?;
+     
+                     println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
+
+    println!("[RECORD] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_3, samples.len());
+
+
+    if id_3 == "171" {
+        let img_result = 
+            image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+        match img_result {
+            Ok(image) => {
+                   //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                   image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                    count_record += 1;
+               },
+            Err(_) => (),
+        };
+    }
+
+    Ok(gst::FlowSuccess::Ok)
 
 }
 
