@@ -155,6 +155,9 @@ async fn connect_nats() -> Connection {
     // Initialize queue 5
     let queue_5 =
         gst::ElementFactory::make("queue", Some("queue_5")).map_err(|_| MissingElement("queue"))?;
+    // Initialize queue 6
+    let queue_6 =
+        gst::ElementFactory::make("queue", Some("queue_6")).map_err(|_| MissingElement("queue"))?;
     // Initialize vaapih264dec
     let vaapih264dec = gst::ElementFactory::make("vaapih264dec", None)
         .map_err(|_| MissingElement("vaapih264dec"))?;
@@ -164,6 +167,9 @@ async fn connect_nats() -> Connection {
     // Initialize videorate_2
     let videorate_2 = gst::ElementFactory::make("videorate", Some("videorate_2"))
         .map_err(|_| MissingElement("videorate"))?;
+    // Initialize videorate_3
+    let videorate_3 = gst::ElementFactory::make("videorate", Some("videorate_3"))
+    .map_err(|_| MissingElement("videorate"))?;
     // Initialize capsfilter for videorate
     let capsfilter = gst::ElementFactory::make("capsfilter", Some("capsfilter"))
         .map_err(|_| MissingElement("capsfilter"))?;
@@ -185,6 +191,14 @@ async fn connect_nats() -> Connection {
         .field("width", 720 as i32)
         .field("height", 480 as i32)
         .build();
+    // Initialize capsfilter for videorate_3
+    let capsfilter_5 = gst::ElementFactory::make("capsfilter", Some("capsfilter_5"))?;
+    let caps_5 = gst::Caps::builder("video/x-raw")
+        .field("framerate", gst::Fraction::new(1, 1))
+        .build();
+    // Initialize capsfilter for vaapipostproc_3
+    let capsfilter_6 = gst::ElementFactory::make("capsfilter", Some("capsfilter_6"))?;
+    let caps_6 = gst::Caps::new_simple("video/x-raw", &[("width", &(1920 as i32)), ("height", &(1080 as i32))]);
     // Initialize vaapipostproc
     let vaapipostproc = gst::ElementFactory::make("vaapipostproc", Some("vaapipostproc"))
         .map_err(|_| MissingElement("vaapipostproc"))?;
@@ -201,18 +215,28 @@ async fn connect_nats() -> Connection {
     // Initialize AppSink 2
     let sink_2 = gst::ElementFactory::make("appsink", Some("sink_2"))
         .map_err(|_| MissingElement("appsink"))?;
-
+    // Initialize vaapipostproc_3
+    let vaapipostproc_3 = gst::ElementFactory::make("vaapipostproc", Some("vaapipostproc_3"))
+        .map_err(|_| MissingElement("vaapipostproc"))?;
+    // Initialize vaapijpegenc_3
+    let vaapijpegenc_3 = gst::ElementFactory::make("vaapijpegenc", Some("vaapijpegenc_3"))
+        .map_err(|_| MissingElement("vaapijpegenc"))?;
+    // Initialize AppSink 3
+    let sink_3 = gst::ElementFactory::make("appsink", Some("sink_3"))
+        .map_err(|_| MissingElement("appsink"))?;
     src.set_property("location", &uri);
     queue.set_property_from_str("leaky", "downstream");
     queue_2.set_property_from_str("leaky", "downstream");
     queue_3.set_property_from_str("leaky", "downstream");
     queue_4.set_property_from_str("leaky", "downstream");
     queue_5.set_property_from_str("leaky", "downstream");
+    queue_6.set_property_from_str("leaky", "downstream");
     capsfilter.set_property("caps", &caps);
     capsfilter_2.set_property("caps", &caps_2);
     capsfilter_3.set_property("caps", &caps_3);
     capsfilter_4.set_property("caps", &caps_4);
-
+    capsfilter_5.set_property("caps", &caps_5);
+    capsfilter_6.set_property("caps", &caps_6);
     // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
     let elements = &[
         &src,
@@ -237,6 +261,13 @@ async fn connect_nats() -> Connection {
         &capsfilter_4,
         &vaapijpegenc_2,
         &sink_2,
+        &queue_6,
+        &videorate_3,
+        &capsfilter_5,
+        &vaapipostproc_3,
+        &capsfilter_6,
+        &vaapijpegenc_3,
+        &sink_3,
     ];
 
     pipeline.add_many(elements);
@@ -287,6 +318,14 @@ async fn connect_nats() -> Connection {
     capsfilter_4.link(&vaapijpegenc_2).unwrap();
     vaapijpegenc_2.link(&sink_2).unwrap();
 
+    tee.link(&queue_6).unwrap();
+    queue_6.link(&videorate_3).unwrap();
+    videorate_3.link(&capsfilter_5).unwrap();
+    capsfilter_5.link(&vaapipostproc_3).unwrap();
+    vaapipostproc_3.link(&capsfilter_6).unwrap();
+    capsfilter_6.link(&vaapijpegenc_3).unwrap();
+    vaapijpegenc_3.link(&sink_3).unwrap();
+
     let appsink = pipeline
         .by_name("sink")
         .expect("Sink element not found")
@@ -299,6 +338,12 @@ async fn connect_nats() -> Connection {
         .downcast::<gst_app::AppSink>()
         .expect("Sink 2 element is expected to be an appsink!");
 
+    let appsink_3 = pipeline
+        .by_name("sink_3")
+        .expect("Sink 3 element not found")
+        .downcast::<gst_app::AppSink>()
+        .expect("Sink 3 element is expected to be an appsink!");
+
     //FULLSCREEN
     appsink.set_property("emit-signals", false);
     appsink.set_property("max-buffers", 100u32);
@@ -309,12 +354,16 @@ async fn connect_nats() -> Connection {
     appsink_2.set_property("max-buffers", 100u32);
     appsink_2.set_property("drop", true);
 
-        
+    //RECORD
+    appsink_3.set_property("emit-signals", false);
+    appsink_3.set_property("max-buffers", 100u32);
+    appsink_3.set_property("drop", true); 
 
     let mut count_full = 0;
     let mut count_thumb= 0;
+    let mut count_record = 0;
     let id_2 = id.clone();
-    let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+    let id_3 = id.clone();
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -365,20 +414,19 @@ async fn connect_nats() -> Connection {
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
-                 if throttle.accept().is_ok() {
-                    if id == "171" {
-                        let img_result = 
-                            image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                        match img_result {
-                            Ok(image) => {
-                                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                                image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-                                    count_full += 1;
-                            },
-                            Err(_) => (),
-                        };
-                    }
-                }
+
+            // if id == "171" {
+            //     let img_result = 
+            //         image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //     match img_result {
+            //         Ok(image) => {
+            //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+            //                image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+            //                 count_full += 1;
+            //            },
+            //         Err(_) => (),
+            //     };
+            // }
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -473,6 +521,85 @@ async fn connect_nats() -> Connection {
             .build(),
     );
 
+    appsink_3.set_callbacks(
+        gst_app::AppSinkCallbacks::builder()
+            // Add a handler to the "new-sample" signal.
+            .new_sample(move |appsink| {
+                // Pull the sample in question out of the appsink's buffer.
+                let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+               //println!("Sample: {:?}", sample);
+                let buffer = sample.buffer().ok_or_else(|| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to get buffer from appsink")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+        //        println!("Buffer {:?}", buffer);
+                
+
+                let map = buffer.map_readable().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                        ("Failed to map buffer readable")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+  //              println!("xxxxxxxx Map {:?}", map);   
+
+                let samples = map.as_slice_of::<u8>().map_err(|_| {
+                    element_error!(
+                        appsink,
+                        gst::ResourceError::Failed,
+                       ("Failed to interprete buffer as S16 PCM")
+                    );
+
+                    gst::FlowError::Error
+                })?;
+
+                println!("[RECORD] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_3, samples.len());
+
+                // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
+                // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
+                 //SAVE IMAGE
+                 //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
+                 //file.write_all(samples);
+
+            if id == "171" {
+                let img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match img_result {
+                    Ok(image) => {
+                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                           image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                            count_record += 1;
+                       },
+                    Err(_) => (),
+                };
+            }
+            // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+            // let result = throttle.accept();
+            // if result.is_ok() {
+                    // println!("Throttle START!!");
+                    // let transcode_actor = Distributor::named("transcode");
+                    // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                    
+                    drop(samples);
+                    drop(map);
+                    drop(buffer);
+                    drop(sample);
+                // }
+                Ok(gst::FlowSuccess::Ok)
+                // Err(gst::FlowError::Error)
+            })
+            .build(),
+    );
+
     Ok(pipeline)
 }
 
@@ -522,25 +649,25 @@ async fn main() {
     let urls = [
         // "rtsp://10.50.29.96/1/h264major",
         "rtsp://10.50.31.171/1/h264major",
-        "rtsp://10.50.13.231/1/h264major",
-        "rtsp://10.50.13.233/1/h264major",
-        "rtsp://10.50.13.234/1/h264major",
-        "rtsp://10.50.13.235/1/h264major",
-        "rtsp://10.50.13.236/1/h264major",
-        "rtsp://10.50.13.237/1/h264major",
-        "rtsp://10.50.13.238/1/h264major",
-        "rtsp://10.50.13.239/1/h264major",
-        "rtsp://10.50.13.240/1/h264major",
-        "rtsp://10.50.13.241/1/h264major",
-        "rtsp://10.50.13.242/1/h264major",
-        "rtsp://10.50.13.243/1/h264major",
-        "rtsp://10.50.13.244/1/h264major",
-        "rtsp://10.50.13.245/1/h264major",
-        "rtsp://10.50.13.248/1/h264major",
-        "rtsp://10.50.13.249/1/h264major",
-        "rtsp://10.50.13.252/1/h264major",
-        "rtsp://10.50.13.253/1/h264major",
-        "rtsp://10.50.13.254/1/h264major",
+        // "rtsp://10.50.13.231/1/h264major",
+        // "rtsp://10.50.13.233/1/h264major",
+        // "rtsp://10.50.13.234/1/h264major",
+        // "rtsp://10.50.13.235/1/h264major",
+        // "rtsp://10.50.13.236/1/h264major",
+        // "rtsp://10.50.13.237/1/h264major",
+        // "rtsp://10.50.13.238/1/h264major",
+        // "rtsp://10.50.13.239/1/h264major",
+        // "rtsp://10.50.13.240/1/h264major",
+        // "rtsp://10.50.13.241/1/h264major",
+        // "rtsp://10.50.13.242/1/h264major",
+        // "rtsp://10.50.13.243/1/h264major",
+        // "rtsp://10.50.13.244/1/h264major",
+        // "rtsp://10.50.13.245/1/h264major",
+        // "rtsp://10.50.13.248/1/h264major",
+        // "rtsp://10.50.13.249/1/h264major",
+        // "rtsp://10.50.13.252/1/h264major",
+        // "rtsp://10.50.13.253/1/h264major",
+        // "rtsp://10.50.13.254/1/h264major",
         // "http://10.50.29.36/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
@@ -577,25 +704,25 @@ async fn main() {
     let cam_ip = vec![
         // 96, 
         171,
-        231, 
-        233, 
-        234, 
-        235, 
-        236, 
-        237, 
-        238, 
-        239, 
-        240,
-        241,
-        242, 
-        243, 
-        244, 
-        245, 
-        248, 
-        249, 
-        252, 
-        253, 
-        254,
+        // 231, 
+        // 233, 
+        // 234, 
+        // 235, 
+        // 236, 
+        // 237, 
+        // 238, 
+        // 239, 
+        // 240,
+        // 241,
+        // 242, 
+        // 243, 
+        // 244, 
+        // 245, 
+        // 248, 
+        // 249, 
+        // 252, 
+        // 253, 
+        // 254,
     ];
 
     for ip in &cam_ip {
