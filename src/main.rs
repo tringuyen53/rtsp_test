@@ -314,6 +314,7 @@ async fn connect_nats() -> Connection {
     let mut count_full = 0;
     let mut count_thumb= 0;
     let id_2 = id.clone();
+    let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
     appsink.set_callbacks(
@@ -364,19 +365,20 @@ async fn connect_nats() -> Connection {
                  //SAVE IMAGE
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
-
-            if id == "171" {
-                let img_result = 
-                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                match img_result {
-                    Ok(image) => {
-                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                           image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-                            count_full += 1;
-                       },
-                    Err(_) => (),
-                };
-            }
+                 if throttle.accept().is_ok() {
+                    if id == "171" {
+                        let img_result = 
+                            image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                        match img_result {
+                            Ok(image) => {
+                                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                                image.save(format!("{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                                    count_full += 1;
+                            },
+                            Err(_) => (),
+                        };
+                    }
+                }
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
