@@ -186,7 +186,8 @@ async fn connect_nats() -> Connection {
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                        //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                        image.save(format!("{}.jpg", std::time::SystemTime::now()));
                          count_full += 1;
                     },
                  Err(_) => (),
@@ -258,15 +259,15 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-             let img_result = 
-                 image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-             match img_result {
-                 Ok(image) => {
-                         image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
-                         count_thumb += 1;
-                    },
-                 Err(_) => (),
-             };
+            //  let img_result = 
+            //      image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+            //  match img_result {
+            //      Ok(image) => {
+            //              image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
+            //              count_thumb += 1;
+            //         },
+            //      Err(_) => (),
+            //  };
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -332,7 +333,8 @@ async fn main() {
     
 
     let urls = [
-        "rtsp://10.50.29.96/1/h264major",
+        // "rtsp://10.50.29.96/1/h264major",
+        "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
         // "rtsp://10.50.13.233/1/h264major",
         // "rtsp://10.50.13.234/1/h264major",
@@ -386,7 +388,8 @@ async fn main() {
     }).map_err(|_| println!("Error"));
 
     let cam_ip = vec![
-        96, 
+        // 96, 
+        171,
         // 231, 
         // 233, 
         // 234, 
