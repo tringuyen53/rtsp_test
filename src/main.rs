@@ -87,21 +87,21 @@ async fn connect_nats() -> Connection {
     //     "rtspsrc location={} latency=100 ! queue ! rtpjitterbuffer ! rtph264depay ! queue ! h264parse ! vaapih263dec ! queue ! videoconvert ! videoscale ! jpegenc ! appsink name=sink" ,
     //     uri
     // ))?
-    let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} name=src !
-        application/x-rtp, media=video, encoding-name=H264!
-        rtph264depay ! queue leaky=2 !
-        h264parse ! tee name=thumbnail_video !
-        queue leaky=2 ! vaapih264dec !
-        videorate ! video/x-raw, framerate=3/1 !
-        vaapipostproc ! video/x-raw, width=1920, height=1080 ! vaapijpegenc !
-        appsink name=app1 max-buffers=100 emit-signals=false drop=true sync=false
-        thumbnail_video. ! queue leaky=2 ! vaapih264dec !
-        videorate ! video/x-raw, framerate=3/1 !
-        vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc !
-        appsink name=app2 max-buffers=100 emit-signals=false drop=true sync=false",
-        uri,
-    ))?
+    // let pipeline = gst::parse_launch(&format!(
+    //     "rtspsrc location={} name=src !
+    //     application/x-rtp, media=video, encoding-name=H264!
+    //     rtph264depay ! queue leaky=2 !
+    //     h264parse ! tee name=thumbnail_video !
+    //     queue leaky=2 ! vaapih264dec !
+    //     videorate ! video/x-raw, framerate=3/1 !
+    //     vaapipostproc ! video/x-raw, width=1920, height=1080 ! vaapijpegenc !
+    //     appsink name=app1 max-buffers=100 emit-signals=false drop=true sync=false
+    //     thumbnail_video. ! queue leaky=2 ! vaapih264dec !
+    //     videorate ! video/x-raw, framerate=3/1 !
+    //     vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc !
+    //     appsink name=app2 max-buffers=100 emit-signals=false drop=true sync=false",
+    //     uri,
+    // ))?
         //MJPEG
     // let pipeline = gst::parse_launch(&format!(
     //     "souphttpsrc location={} is-live=true do-timestamp=true ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
@@ -110,30 +110,213 @@ async fn connect_nats() -> Connection {
     //     videorate ! video/x-raw, framerate=2/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
     //     uri
     // ))?
-    .downcast::<gst::Pipeline>()
-    .expect("Expected a gst::Pipeline");
+    // .downcast::<gst::Pipeline>()
+    // .expect("Expected a gst::Pipeline");
 
-    println!("pipeline: {:?} - {:?}", uri, pipeline);
+    // println!("pipeline: {:?} - {:?}", uri, pipeline);
     
     // Get access to the appsink element.
-    let appsink1 = pipeline
-        .by_name("app1")
+    // let appsink1 = pipeline
+    //     .by_name("app1")
+    //     .expect("Sink element not found")
+    //     .downcast::<gst_app::AppSink>()
+    //     .expect("Sink element is expected to be an appsink!");
+
+    // let appsink2 = pipeline
+    //     .by_name("app2")
+    //     .expect("Sink element not found")
+    //     .downcast::<gst_app::AppSink>()
+    //     .expect("Sink element is expected to be an appsink!");
+
+    let pipeline = gst::Pipeline::new(None)
+        .downcast::<gst::Pipeline>()
+        .expect("Expected a gst::Pipeline");
+    // Initialize RTSP source
+    let src = gst::ElementFactory::make("rtspsrc", None).map_err(|_| MissingElement("rtspsrc"))?;
+    // Initialize rtph264depay
+    let rtph264depay = gst::ElementFactory::make("rtph264depay", Some("depay"))?;
+    // Initialize queue 1
+    let queue =
+        gst::ElementFactory::make("queue", Some("queue")).map_err(|_| MissingElement("queue"))?;
+    // Initialize h264parse
+    let h264parse =
+        gst::ElementFactory::make("h264parse", None).map_err(|_| MissingElement("h264parse"))?;
+    // Initialize tee
+    let tee = gst::ElementFactory::make("tee", Some("tee"))?;
+    // Initialize queue 2
+    let queue_2 =
+        gst::ElementFactory::make("queue", Some("queue_2")).map_err(|_| MissingElement("queue"))?;
+    // Initialize queue 3
+    let queue_3 =
+        gst::ElementFactory::make("queue", Some("queue_3")).map_err(|_| MissingElement("queue"))?;
+    // Initialize queue 4
+    let queue_4 =
+        gst::ElementFactory::make("queue", Some("queue_4")).map_err(|_| MissingElement("queue"))?;
+    // Initialize queue 5
+    let queue_5 =
+        gst::ElementFactory::make("queue", Some("queue_5")).map_err(|_| MissingElement("queue"))?;
+    // Initialize vaapih264dec
+    let vaapih264dec = gst::ElementFactory::make("vaapih264dec", None)
+        .map_err(|_| MissingElement("vaapih264dec"))?;
+    // Initialize videorate
+    let videorate = gst::ElementFactory::make("videorate", Some("videorate"))
+        .map_err(|_| MissingElement("videorate"))?;
+    // Initialize videorate_2
+    let videorate_2 = gst::ElementFactory::make("videorate", Some("videorate_2"))
+        .map_err(|_| MissingElement("videorate"))?;
+    // Initialize capsfilter for videorate
+    let capsfilter = gst::ElementFactory::make("capsfilter", Some("capsfilter"))
+        .map_err(|_| MissingElement("capsfilter"))?;
+    let caps = gst::Caps::builder("video/x-raw")
+        .field("framerate", gst::Fraction::new(fullscreen_fps as i32, 1))
+        .build();
+    // Initialize capsfilter for vaapipostproc
+    let capsfilter_2 = gst::ElementFactory::make("capsfilter", Some("capsfilter_2"))
+        .map_err(|_| MissingElement("capsfilter"))?;
+    let caps_2 = gst::Caps::new_simple("video/x-raw", &[("width", &1920), ("height", &1080)]);
+    // Initialize capsfilter for videorate_2
+    let capsfilter_3 = gst::ElementFactory::make("capsfilter", Some("capsfilter_3"))?;
+    let caps_3 = gst::Caps::builder("video/x-raw")
+        .field("framerate", gst::Fraction::new(thumbnail_fps as i32, 1))
+        .build();
+    // Initialize capsfilter for vaapipostproc_2
+    let capsfilter_4 = gst::ElementFactory::make("capsfilter", Some("capsfilter_4"))?;
+    let caps_4 = gst::Caps::builder("video/x-raw")
+        .field("width", *width.read().unwrap() as i32)
+        .field("height", *height.read().unwrap() as i32)
+        .build();
+    // Initialize vaapipostproc
+    let vaapipostproc = gst::ElementFactory::make("vaapipostproc", Some("vaapipostproc"))
+        .map_err(|_| MissingElement("vaapipostproc"))?;
+    // Initialize vaapijpegenc
+    let vaapijpegenc = gst::ElementFactory::make("vaapijpegenc", Some("vaapijpegenc"))
+        .map_err(|_| MissingElement("vaapijpegenc"))?;
+    // Initialize appsink 1
+    let sink = gst::ElementFactory::make("appsink", Some("sink"))
+        .map_err(|_| MissingElement("appsink"))?;
+    // Initialize vaapipostproc_2
+    let vaapipostproc_2 = gst::ElementFactory::make("vaapipostproc", Some("vaapipostproc_2"))?;
+    // Initialize vaapijpegenc_2
+    let vaapijpegenc_2 = gst::ElementFactory::make("vaapijpegenc", Some("vaapijpegenc_2"))?;
+    // Initialize AppSink 2
+    let sink_2 = gst::ElementFactory::make("appsink", Some("sink_2"))
+        .map_err(|_| MissingElement("appsink"))?;
+
+    src.set_property("location", &rtsp_url);
+    queue.set_property_from_str("leaky", "downstream");
+    queue_2.set_property_from_str("leaky", "downstream");
+    queue_3.set_property_from_str("leaky", "downstream");
+    queue_4.set_property_from_str("leaky", "downstream");
+    queue_5.set_property_from_str("leaky", "downstream");
+    capsfilter.set_property("caps", &caps);
+    capsfilter_2.set_property("caps", &caps_2);
+    capsfilter_3.set_property("caps", &caps_3);
+    capsfilter_4.set_property("caps", &caps_4);
+
+    // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
+    let elements = &[
+        &src,
+        &rtph264depay,
+        &queue,
+        &h264parse,
+        &queue_2,
+        &vaapih264dec,
+        &queue_3,
+        &tee,
+        &queue_4,
+        &videorate,
+        &capsfilter,
+        &vaapipostproc,
+        &capsfilter_2,
+        &vaapijpegenc,
+        &sink,
+        &queue_5,
+        &videorate_2,
+        &capsfilter_3,
+        &vaapipostproc_2,
+        &capsfilter_4,
+        &vaapijpegenc_2,
+        &sink_2,
+    ];
+
+    pipeline.add_many(elements);
+
+    // sink.link(&src)?;
+    let _ = src.link(&rtph264depay);
+    let rtph264depay_weak = ObjectExt::downgrade(&rtph264depay);
+    src.connect_pad_added(move |elm, src_pad| {
+        let rtph264depay = match rtph264depay_weak.upgrade() {
+            Some(depay) => depay,
+            None => return,
+        };
+        let sink_pad = rtph264depay
+            .static_pad("sink")
+            .expect("rtph264depay has no sink pad");
+        if sink_pad.is_linked() {
+            return;
+        }
+        match src_pad.link(&sink_pad) {
+            Ok(_) => (),
+            Err(_) => {
+                let name = src_pad.name();
+                elm.link_pads(Some(name.as_str()), &rtph264depay, Some("sink"));
+            }
+        };
+    });
+
+    rtph264depay.link(&queue).unwrap();
+    queue.link(&h264parse).unwrap();
+    h264parse.link(&queue_2).unwrap();
+    queue_2.link(&vaapih264dec).unwrap();
+    vaapih264dec.link(&queue_3).unwrap();
+    queue_3.link(&tee).unwrap();
+
+    tee.link(&queue_4).unwrap();
+    queue_4.link(&videorate).unwrap();
+    videorate.link(&capsfilter).unwrap();
+    capsfilter.link(&vaapipostproc).unwrap();
+    vaapipostproc.link(&capsfilter_2).unwrap();
+    capsfilter_2.link(&vaapijpegenc).unwrap();
+    vaapijpegenc.link(&sink).unwrap();
+
+    tee.link(&queue_5).unwrap();
+    queue_5.link(&videorate_2).unwrap();
+    videorate_2.link(&capsfilter_3).unwrap();
+    capsfilter_3.link(&vaapipostproc_2).unwrap();
+    vaapipostproc_2.link(&capsfilter_4).unwrap();
+    capsfilter_4.link(&vaapijpegenc_2).unwrap();
+    vaapijpegenc_2.link(&sink_2).unwrap();
+
+    let appsink = pipeline
+        .by_name("sink")
         .expect("Sink element not found")
         .downcast::<gst_app::AppSink>()
         .expect("Sink element is expected to be an appsink!");
 
-    let appsink2 = pipeline
-        .by_name("app2")
-        .expect("Sink element not found")
+    let appsink_2 = pipeline
+        .by_name("sink_2")
+        .expect("Sink 2 element not found")
         .downcast::<gst_app::AppSink>()
-        .expect("Sink element is expected to be an appsink!");
+        .expect("Sink 2 element is expected to be an appsink!");
+
+    //FULLSCREEN
+    appsink.set_property("emit-signals", false);
+    appsink.set_property("max-buffers", 100u32);
+    appsink.set_property("drop", true);
+
+    //THUMNAIL
+    appsink_2.set_property("emit-signals", false);
+    appsink_2.set_property("max-buffers", 100u32);
+    appsink_2.set_property("drop", true);
+
+        
 
     let mut count_full = 0;
     let mut count_thumb= 0;
     let id_2 = id.clone();
     // Getting data out of the appsink is done by setting callbacks on it.
     // The appsink will then call those handlers, as soon as data is available.
-    appsink1.set_callbacks(
+    appsink.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
@@ -210,7 +393,7 @@ async fn connect_nats() -> Connection {
             .build(),
     );
 
-    appsink2.set_callbacks(
+    appsink_2.set_callbacks(
         gst_app::AppSinkCallbacks::builder()
             // Add a handler to the "new-sample" signal.
             .new_sample(move |appsink| {
