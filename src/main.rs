@@ -360,6 +360,9 @@ async fn connect_nats() -> Connection {
     appsink_3.set_property("drop", true); 
     appsink_3.set_property("wait-on-eos", false);
 
+    src.set_property("is-live", true);
+    src.set_property("do-timestamp", true);
+
     let mut count_full = 0;
     let mut count_thumb= 0;
     let mut count_record = 0;
