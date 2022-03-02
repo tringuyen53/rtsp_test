@@ -665,7 +665,7 @@ async fn main() {
 
     let urls = [
         // "rtsp://10.50.29.96/1/h264major",
-        "rtsp://10.50.31.171/1/h264major",
+        // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
         // "rtsp://10.50.13.233/1/h264major",
         // "rtsp://10.50.13.234/1/h264major",
@@ -686,6 +686,7 @@ async fn main() {
         // "rtsp://10.50.13.253/1/h264major",
         // "rtsp://10.50.13.254/1/h264major",
         // "http://10.50.29.36/mjpgstreamreq/1/image.jpg",
+        "http://10.50.31.171/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.234/mjpgstreamreq/1/image.jpg",
