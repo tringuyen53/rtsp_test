@@ -105,9 +105,9 @@ async fn connect_nats() -> Connection {
         //MJPEG
     // let pipeline = gst::parse_launch(&format!(
     //     "souphttpsrc location={} is-live=true do-timestamp=true ! jpegparse ! vaapijpegdec ! tee name=thumbnail_video ! queue leaky=2 !
-    //     videorate ! video/x-raw, framerate=2/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
+    //     videorate ! video/x-raw, framerate=3/1 ! vaapijpegenc ! appsink name=app1 emit-signals=false drop=true sync=false
     //     thumbnail_video. ! queue leaky=2 ! 
-    //     videorate ! video/x-raw, framerate=2/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
+    //     videorate ! video/x-raw, framerate=3/1 ! vaapipostproc ! video/x-raw, width=720, height=480 ! vaapijpegenc ! appsink name=app2 emit-signals=false drop=true sync=false" ,
     //     uri
     // ))?
     // .downcast::<gst::Pipeline>()
@@ -132,15 +132,10 @@ async fn connect_nats() -> Connection {
         .downcast::<gst::Pipeline>()
         .expect("Expected a gst::Pipeline");
     // Initialize RTSP source
-    let src = gst::ElementFactory::make("rtspsrc", None).map_err(|_| MissingElement("rtspsrc"))?;
-    // Initialize rtph264depay
-    let rtph264depay = gst::ElementFactory::make("rtph264depay", Some("depay"))?;
-    // Initialize queue 1
-    let queue =
-        gst::ElementFactory::make("queue", Some("queue")).map_err(|_| MissingElement("queue"))?;
+    let src = gst::ElementFactory::make("souphttpsrc", None).map_err(|_| MissingElement("souphttpsrc"))?;
     // Initialize h264parse
-    let h264parse =
-        gst::ElementFactory::make("h264parse", None).map_err(|_| MissingElement("h264parse"))?;
+    let jpegparse =
+        gst::ElementFactory::make("jpegparse", None).map_err(|_| MissingElement("jpegparse"))?;
     // Initialize tee
     let tee = gst::ElementFactory::make("tee", Some("tee"))?;
     // Initialize queue 2
@@ -158,9 +153,9 @@ async fn connect_nats() -> Connection {
     // Initialize queue 6
     let queue_6 =
         gst::ElementFactory::make("queue", Some("queue_6")).map_err(|_| MissingElement("queue"))?;
-    // Initialize vaapih264dec
-    let vaapih264dec = gst::ElementFactory::make("vaapih264dec", None)
-        .map_err(|_| MissingElement("vaapih264dec"))?;
+    // Initialize vaapijpegdec
+    let vaapijpegdec = gst::ElementFactory::make("vaapijpegdec", None)
+        .map_err(|_| MissingElement("vaapijpegdec"))?;
     // Initialize videorate
     let videorate = gst::ElementFactory::make("videorate", Some("videorate"))
         .map_err(|_| MissingElement("videorate"))?;
@@ -240,11 +235,11 @@ async fn connect_nats() -> Connection {
     // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
     let elements = &[
         &src,
-        &rtph264depay,
+        // &rtph264depay,
         // &queue,
-        &h264parse,
+        &jpegparse,
         // &queue_2,
-        &vaapih264dec,
+        &vaapijpegdec,
         // &queue_3,
         &tee,
         &queue_4,
@@ -273,36 +268,36 @@ async fn connect_nats() -> Connection {
     pipeline.add_many(elements);
 
     // sink.link(&src)?;
-    let _ = src.link(&rtph264depay);
-    let rtph264depay_weak = ObjectExt::downgrade(&rtph264depay);
-    src.connect_pad_added(move |elm, src_pad| {
-        let rtph264depay = match rtph264depay_weak.upgrade() {
-            Some(depay) => depay,
-            None => return,
-        };
-        let sink_pad = rtph264depay
-            .static_pad("sink")
-            .expect("rtph264depay has no sink pad");
-        if sink_pad.is_linked() {
-            return;
-        }
-        match src_pad.link(&sink_pad) {
-            Ok(_) => (),
-            Err(_) => {
-                let name = src_pad.name();
-                elm.link_pads(Some(name.as_str()), &rtph264depay, Some("sink"));
-            }
-        };
-    });
+    // let _ = src.link(&rtph264depay);
+    // let rtph264depay_weak = ObjectExt::downgrade(&rtph264depay);
+    // src.connect_pad_added(move |elm, src_pad| {
+    //     let rtph264depay = match rtph264depay_weak.upgrade() {
+    //         Some(depay) => depay,
+    //         None => return,
+    //     };
+    //     let sink_pad = rtph264depay
+    //         .static_pad("sink")
+    //         .expect("rtph264depay has no sink pad");
+    //     if sink_pad.is_linked() {
+    //         return;
+    //     }
+    //     match src_pad.link(&sink_pad) {
+    //         Ok(_) => (),
+    //         Err(_) => {
+    //             let name = src_pad.name();
+    //             elm.link_pads(Some(name.as_str()), &rtph264depay, Some("sink"));
+    //         }
+    //     };
+    // });
 
      // rtph264depay.link(&queue).unwrap();
-     rtph264depay.link(&h264parse).unwrap();
+     src.link(&jpegparse).unwrap();
      // queue.link(&h264parse).unwrap();
      // h264parse.link(&queue_2).unwrap();
-     h264parse.link(&vaapih264dec).unwrap();
+     jpegparse.link(&vaapijpegdec).unwrap();
      // queue_2.link(&vaapih264dec).unwrap();
      // vaapih264dec.link(&queue_3).unwrap();
-     vaapih264dec.link(&tee).unwrap();
+     vaapijpegdec.link(&tee).unwrap();
      // queue_3.link(&tee).unwrap();
 
     tee.link(&queue_4).unwrap();
@@ -421,18 +416,18 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            // if id == "171" {
-            //     let img_result = 
-            //         image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-            //     match img_result {
-            //         Ok(image) => {
-            //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-            //                image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-            //                 count_full += 1;
-            //            },
-            //         Err(_) => (),
-            //     };
-            // }
+            if id == "171" {
+                let img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match img_result {
+                    Ok(image) => {
+                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                           image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                            count_full += 1;
+                       },
+                    Err(_) => (),
+                };
+            }
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
@@ -494,18 +489,18 @@ async fn connect_nats() -> Connection {
 
                 println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
 
-                // if id_2 == "171" {
-                //     let img_result = 
-                //         image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-                //     match img_result {
-                //         Ok(image) => {
-                //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                //                image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-                //                 count_full += 1;
-                //            },
-                //         Err(_) => (),
-                //     };
-                // }
+                if id_2 == "171" {
+                    let img_result = 
+                        image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                    match img_result {
+                        Ok(image) => {
+                               //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                               image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                                count_full += 1;
+                           },
+                        Err(_) => (),
+                    };
+                }
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
                 // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
@@ -589,18 +584,18 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            // if id_3 == "171" {
-            //     let img_result = 
-            //         image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
-            //     match img_result {
-            //         Ok(image) => {
-            //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-            //                image.save(format!("record-{}-{:?}.jpg", id_3, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
-            //                 count_record += 1;
-            //            },
-            //         Err(_) => (),
-            //     };
-            // }
+            if id_3 == "171" {
+                let img_result = 
+                    image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                match img_result {
+                    Ok(image) => {
+                           //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                           image.save(format!("record-{}-{:?}.jpg", id_3, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                            count_record += 1;
+                       },
+                    Err(_) => (),
+                };
+            }
             // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
             // let result = throttle.accept();
             // if result.is_ok() {
