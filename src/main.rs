@@ -425,7 +425,7 @@ async fn connect_nats() -> Connection {
                 match img_result {
                     Ok(image) => {
                            //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                           image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                           image.save(format!("full-{}-{:?}-{}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs(), count_full));
                             count_full += 1;
                        },
                     Err(_) => (),
