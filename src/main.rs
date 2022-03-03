@@ -169,7 +169,7 @@ async fn connect_nats() -> Connection {
     let capsfilter = gst::ElementFactory::make("capsfilter", Some("capsfilter"))
         .map_err(|_| MissingElement("capsfilter"))?;
     let caps = gst::Caps::builder("video/x-raw")
-        .field("framerate", gst::Fraction::new(3, 1))
+        .field("framerate", gst::Fraction::new(10, 1))
         .build();
     // Initialize capsfilter for vaapipostproc
     let capsfilter_2 = gst::ElementFactory::make("capsfilter", Some("capsfilter_2"))
@@ -361,7 +361,7 @@ async fn connect_nats() -> Connection {
     appsink_3.set_property("wait-on-eos", false);
 
     src.set_property("is-live", true);
-    src.set_property("do-timestamp", true);
+        
 
     let mut count_full = 0;
     let mut count_thumb= 0;
