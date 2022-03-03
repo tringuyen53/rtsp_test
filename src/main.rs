@@ -115,7 +115,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
 
     pipeline.set_state(gst::State::Null)?;
 
-    Ok(())
+    Ok(pipeline)
 }
 #[tokio::main]
 async fn main() {
