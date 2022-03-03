@@ -109,13 +109,46 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     .downcast::<gst::Pipeline>()
     .expect("Expected a gst::Pipeline");
 
-    // blocking!(scheduler(count_2.clone()));
-    // Getting data out of the appsink is done by setting callbacks on it.
-    // The appsink will then call those handlers, as soon as data is available.
+    Ok(pipeline)
+}
+
+fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
+    println!("Start main loop");
+    pipeline.set_state(gst::State::Playing)?;
+
+    let bus = pipeline
+        .bus()
+        .expect("Pipeline without bus. Shouldn't happen!");
+
+    //    println!("Bus: {:?}", bus);
+
+    for msg in bus.iter_timed(gst::ClockTime::NONE) {
+        // println!("In loop msg: {:?}", msg);
+        use gst::MessageView;
+
+        match msg.view() {
+            MessageView::Eos(..) => break,
+            MessageView::Error(err) => {
+                pipeline.set_state(gst::State::Null)?;
+                println!("Error: {:?}", err.error());
+                return Err(ErrorMessage {
+                    src: msg
+                        .src()
+                        .map(|s| String::from(s.path_string()))
+                        .unwrap_or_else(|| String::from("None")),
+                    error: err.error().to_string(),
+                    debug: err.debug(),
+                    source: err.error(),
+                }
+                .into());
+            }
+            _ => (),
+        }
+    }
 
     pipeline.set_state(gst::State::Null)?;
 
-    Ok(pipeline)
+    Ok(())
 }
 #[tokio::main]
 async fn main() {
