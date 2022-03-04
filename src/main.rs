@@ -690,7 +690,7 @@ async fn main() {
         // "rtsp://10.50.13.253/1/h264major",
         // "rtsp://10.50.13.254/1/h264major",
         "http://vietnam:L3xRay123!@10.50.29.22/mjpgstreamreq/1/image.jpg",
-        // "http://10.50.31.171/mjpgstreamreq/1/image.jpg",
+        "http://10.50.31.171/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.234/mjpgstreamreq/1/image.jpg",
@@ -725,7 +725,7 @@ async fn main() {
 
     let cam_ip = vec![
         22, 
-        // 171,
+        171,
         // 231, 
         // 233, 
         // 234, 
