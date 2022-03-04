@@ -96,9 +96,7 @@ fn create_pipeline(uri: String, seed: u8) -> Result<gst::Pipeline, Error> {
     //      uri
     //    ))?
     let pipeline = gst::parse_launch(&format!(
-        "rtspsrc location={} ! rtph264pay ! queue !
-            video/x-raw ,framerate=30/1 !
-            h264parse ! udpsink host=janus.3exp8.network port=5004",
+        "rtspsrc location={} latency=300 !application/x-rtp, clock-rate=90000, encoding-name=H264, payload=96 ! rtpjitterbuffer latency=300 ! udpsink host=janus.3exp8.network port=5004",
         uri
     ))?
     // let pipeline = gst::parse_launch(&format!(
