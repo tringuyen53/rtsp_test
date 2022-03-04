@@ -635,7 +635,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
     
     use gst::MessageView;
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
-        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, Undefined(0i64), SeekType::None, Undefined(0i64));
+        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, gst::ClockTime::from_seconds(0), SeekType::None, gst::ClockTime::from_seconds(0));
         // println!("In loop msg: {:?}", msg);
 
         match msg.view() {
