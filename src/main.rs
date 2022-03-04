@@ -14,6 +14,7 @@ extern crate gstreamer_video as gst_video;
 use gst::SeekFlags;
 use gst::SeekType;
 use gst::element_error;
+use gst::format::Undefined;
 use gst::glib;
 use gst::prelude::*;
 use byte_slice_cast::*;
@@ -634,7 +635,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
     
     use gst::MessageView;
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
-        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, 0i64, SeekType::None, 0i64);
+        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, Undefined(0i64), SeekType::None, Undefined(0i64));
         // println!("In loop msg: {:?}", msg);
 
         match msg.view() {
