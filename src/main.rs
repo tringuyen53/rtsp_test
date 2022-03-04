@@ -419,7 +419,7 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            if id == "171" {
+            if id == "22" {
                 let img_result = 
                     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 match img_result {
@@ -492,7 +492,7 @@ async fn connect_nats() -> Connection {
 
                 println!("[THUMB] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id_2, samples.len());
 
-                if id_2 == "171" {
+                if id_2 == "22" {
                     let img_result = 
                         image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                     match img_result {
@@ -587,7 +587,7 @@ async fn connect_nats() -> Connection {
                  //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
                  //file.write_all(samples);
 
-            if id_3 == "171" {
+            if id_3 == "22" {
                 let img_result = 
                     image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
                 match img_result {
@@ -635,7 +635,11 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
         use gst::MessageView;
 
         match msg.view() {
-            MessageView::Eos(..) => break,
+            MessageView::Eos(..) => {
+                println!("EOS MATCHED!!!");
+                pipeline.set_state(gst::State::Null);
+                pipeline.set_state(gst::State::Playing);
+            },
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
                 println!("Error: {:?}", err.error());
@@ -685,8 +689,8 @@ async fn main() {
         // "rtsp://10.50.13.252/1/h264major",
         // "rtsp://10.50.13.253/1/h264major",
         // "rtsp://10.50.13.254/1/h264major",
-        // "http://10.50.29.36/mjpgstreamreq/1/image.jpg",
-        "http://10.50.31.171/mjpgstreamreq/1/image.jpg",
+        "http://10.50.29.22/mjpgstreamreq/1/image.jpg",
+        // "http://10.50.31.171/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.231/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.233/mjpgstreamreq/1/image.jpg",
         // "http://10.50.13.234/mjpgstreamreq/1/image.jpg",
@@ -720,8 +724,8 @@ async fn main() {
     }).map_err(|_| println!("Error"));
 
     let cam_ip = vec![
-        // 96, 
-        171,
+        22, 
+        // 171,
         // 231, 
         // 233, 
         // 234, 
