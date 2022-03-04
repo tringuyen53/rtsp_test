@@ -639,10 +639,16 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
 
         match msg.view() {
             MessageView::Eos(..) => {
-                // println!("EOS MATCHED!!!");
-                // pipeline.set_state(gst::State::Null);
-                // pipeline.set_state(gst::State::Playing);
-                break;
+                match pipeline.seek(
+                    1.0, 
+                    SeekFlags::SEGMENT, 
+                    SeekType::Set, 
+                    gst::ClockTime::from_seconds(0), 
+                    SeekType::None, 
+                    gst::ClockTime::from_seconds(0)) {
+                    Ok(_) => println!("Ok"),
+                    Err(err) => println!("{:?}", err)
+                };
             },
             MessageView::Error(err) => {
                 pipeline.set_state(gst::State::Null)?;
