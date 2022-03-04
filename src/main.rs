@@ -666,7 +666,7 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
                     gst::ClockTime::from_seconds(0), 
                     SeekType::None, 
                     gst::ClockTime::from_seconds(0)) {
-                    Ok(_) => {},
+                    Ok(_) => println!("Ok"),
                     Err(err) => println!("{:?}", err)
                 }
             }
