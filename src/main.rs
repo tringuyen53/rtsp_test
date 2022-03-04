@@ -658,14 +658,15 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
                 .into());
             }
             MessageView::SegmentDone(_) => {
-                if !pipeline.seek(
+                match pipeline.seek(
                     1.0, 
                     SeekFlags::SEGMENT, 
                     SeekType::Set, 
                     gst::ClockTime::from_seconds(0), 
                     SeekType::None, 
                     gst::ClockTime::from_seconds(0)) {
-                    println!("cannot seek");
+                    Ok(_) => {},
+                    Err(err) => println!("{:?}", err)
                 }
             }
             _ => (),
