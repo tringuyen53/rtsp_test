@@ -11,6 +11,8 @@
 extern crate gstreamer as gst;
 extern crate gstreamer_app as gst_app;
 extern crate gstreamer_video as gst_video;
+use gst::SeekFlags;
+use gst::SeekType;
 use gst::element_error;
 use gst::glib;
 use gst::prelude::*;
@@ -361,7 +363,7 @@ async fn connect_nats() -> Connection {
     appsink_3.set_property("wait-on-eos", false);
 
     src.set_property("is-live", true);
-        
+    src.set_property("do-timestamp", true);
 
     let mut count_full = 0;
     let mut count_thumb= 0;
@@ -622,11 +624,22 @@ async fn connect_nats() -> Connection {
 
 fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
     println!("Start main loop");
-    pipeline.set_state(gst::State::Playing)?;
-
+    
     let bus = pipeline
-        .bus()
-        .expect("Pipeline without bus. Shouldn't happen!");
+    .bus()
+    .expect("Pipeline without bus. Shouldn't happen!");
+    
+    let pl_weak = pipeline.downgrade();
+    bus.connect_message("message::segment-done", move |_, msg| {
+        let pipeline = match pl_weak.upgrade() {
+            Some(pl) => pl,
+            None => return false
+        };
+        
+        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, 0, SeekType::None, 0);
+    });
+    pipeline.set_state(gst::State::Playing)?;
+    pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, 0, SeekType::None, 0);
 
 //    println!("Bus: {:?}", bus);
 
