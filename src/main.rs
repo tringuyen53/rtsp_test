@@ -635,7 +635,6 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
     
     use gst::MessageView;
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
-        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, gst::ClockTime::from_seconds(0), SeekType::None, gst::ClockTime::from_seconds(0));
         // println!("In loop msg: {:?}", msg);
 
         match msg.view() {
@@ -657,6 +656,17 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
                     source: err.error(),
                 }
                 .into());
+            }
+            MessageView::SegmentDone(_) => {
+                if !pipeline.seek(
+                    1.0, 
+                    SeekFlags::SEGMENT, 
+                    SeekType::Set, 
+                    gst::ClockTime::from_seconds(0), 
+                    SeekType::None, 
+                    gst::ClockTime::from_seconds(0)) {
+                    println!("cannot seek");
+                }
             }
             _ => (),
         }
