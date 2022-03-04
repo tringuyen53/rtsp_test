@@ -624,28 +624,18 @@ async fn connect_nats() -> Connection {
 
 fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
     println!("Start main loop");
+    pipeline.set_state(gst::State::Playing)?;
     
     let bus = pipeline
     .bus()
     .expect("Pipeline without bus. Shouldn't happen!");
     
-    let pl_weak = pipeline.downgrade();
-    bus.connect_message("message::segment-done", move |_, msg| {
-        let pipeline = match pl_weak.upgrade() {
-            Some(pl) => pl,
-            None => return false
-        };
-        
-        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, 0, SeekType::None, 0);
-    });
-    pipeline.set_state(gst::State::Playing)?;
-    pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, 0, SeekType::None, 0);
-
-//    println!("Bus: {:?}", bus);
-
+    //    println!("Bus: {:?}", bus);
+    
+    use gst::MessageView;
     for msg in bus.iter_timed(gst::ClockTime::NONE) {
+        pipeline.seek(1.0, SeekFlags::SEGMENT, SeekType::Set, 0i64, SeekType::None, 0i64);
         // println!("In loop msg: {:?}", msg);
-        use gst::MessageView;
 
         match msg.view() {
             MessageView::Eos(..) => {
