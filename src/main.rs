@@ -145,7 +145,7 @@ async fn connect_nats() -> Connection {
     // Initialize tee
     let tee = gst::ElementFactory::make("tee", Some("tee"))?;
     let queue =
-        gst::ElementFactory::make("queue", Some("queue_2")).map_err(|_| MissingElement("queue"))?;
+        gst::ElementFactory::make("queue", Some("queue")).map_err(|_| MissingElement("queue"))?;
     // Initialize queue 2
     let queue_2 =
         gst::ElementFactory::make("queue", Some("queue_2")).map_err(|_| MissingElement("queue"))?;
