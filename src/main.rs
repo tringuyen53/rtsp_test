@@ -225,7 +225,7 @@ async fn connect_nats() -> Connection {
     // Initialize AppSink 3
     let sink_3 = gst::ElementFactory::make("appsink", Some("sink_3"))
         .map_err(|_| MissingElement("appsink"))?;
-    src.set_property("location", &uri);
+    
     // queue.set_property_from_str("leaky", "downstream");
     // queue_2.set_property_from_str("leaky", "downstream");
     // queue_3.set_property_from_str("leaky", "downstream");
@@ -273,7 +273,7 @@ async fn connect_nats() -> Connection {
 
     pipeline.add_many(elements);
 
-    sink.link(&src)?;
+    // sink.link(&src)?;
     let _ = src.link(&rtph264depay);
     let rtph264depay_weak = ObjectExt::downgrade(&rtph264depay);
     src.connect_pad_added(move |elm, src_pad| {
@@ -373,7 +373,7 @@ async fn connect_nats() -> Connection {
     // appsink_3.set_property("wait-on-eos", false);
 
     // src.set_property("is-live", true);
-    src.set_property("location", uri);
+    src.set_property("location", &uri);
 
     let mut count_full = 0;
     let mut count_thumb= 0;
@@ -783,7 +783,7 @@ async fn main() {
     }
 
     Bastion::start();
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    std::thread::sleep(std::time::Duration::from_millis(100));
 
     let mut index = 0;
     // let client = task::block_on(connect_nats());
