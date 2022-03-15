@@ -69,7 +69,9 @@ async fn connect_nats() -> Connection {
         .unwrap()
 }
 
- fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(id: String, uri: String, 
+    // client: Connection
+) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -811,7 +813,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.id, message.url, message.client).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
