@@ -226,8 +226,8 @@ async fn connect_nats() -> Connection {
     let sink_3 = gst::ElementFactory::make("appsink", Some("sink_3"))
         .map_err(|_| MissingElement("appsink"))?;
     
-    // queue.set_property_from_str("leaky", "downstream");
-    // queue_2.set_property_from_str("leaky", "downstream");
+    queue.set_property_from_str("leaky", "downstream");
+    queue_2.set_property_from_str("leaky", "downstream");
     // queue_3.set_property_from_str("leaky", "downstream");
     queue_4.set_property_from_str("leaky", "downstream");
     queue_5.set_property_from_str("leaky", "downstream");
@@ -242,9 +242,9 @@ async fn connect_nats() -> Connection {
     let elements = &[
         &src,
         &rtph264depay,
-        // &queue,
+        &queue,
         &h264parse,
-        // &queue_2,
+        &queue_2,
         &vaapih264dec,
         // &queue_3,
         &tee,
@@ -353,15 +353,15 @@ async fn connect_nats() -> Connection {
     //     .expect("Sink 3 element is expected to be an appsink!");
 
     //FULLSCREEN
-    appsink.set_property("emit-signals", false);
-    appsink.set_property("max-buffers", 5u32);
+    // appsink.set_property("emit-signals", false);
+    appsink.set_property("max-buffers", 1u32);
     appsink.set_property("drop", true);
     appsink.set_property("sync", true);
     appsink_2.set_property("wait-on-eos", false);
 
     //THUMNAIL
-    appsink_2.set_property("emit-signals", false);
-    appsink_2.set_property("max-buffers", 5u32);
+    // appsink_2.set_property("emit-signals", false);
+    appsink_2.set_property("max-buffers", 1u32);
     appsink_2.set_property("drop", true);
     appsink_2.set_property("sync", true);
     appsink_2.set_property("wait-on-eos", false);
