@@ -136,6 +136,7 @@ async fn connect_nats() -> Connection {
         .expect("Expected a gst::Pipeline");
     // Initialize RTSP source
     let src = gst::ElementFactory::make("rtspsrc", None).map_err(|_| MissingElement("rtspsrc"))?;
+    let rtph264depay = gst::ElementFactory::make("rtph264depay", Some("depay"))?;
     // Initialize h264parse
     let h264parse =
         gst::ElementFactory::make("h264parse", None).map_err(|_| MissingElement("h264parse"))?;
@@ -270,37 +271,41 @@ async fn connect_nats() -> Connection {
 
     pipeline.add_many(elements);
 
-    // sink.link(&src)?;
-    // let _ = src.link(&rtph264depay);
-    // let rtph264depay_weak = ObjectExt::downgrade(&rtph264depay);
-    // src.connect_pad_added(move |elm, src_pad| {
-    //     let rtph264depay = match rtph264depay_weak.upgrade() {
-    //         Some(depay) => depay,
-    //         None => return,
-    //     };
-    //     let sink_pad = rtph264depay
-    //         .static_pad("sink")
-    //         .expect("rtph264depay has no sink pad");
-    //     if sink_pad.is_linked() {
-    //         return;
-    //     }
-    //     match src_pad.link(&sink_pad) {
-    //         Ok(_) => (),
-    //         Err(_) => {
-    //             let name = src_pad.name();
-    //             elm.link_pads(Some(name.as_str()), &rtph264depay, Some("sink"));
-    //         }
-    //     };
-    // });
+    sink.link(&src)?;
+    let _ = src.link(&rtph264depay);
+    let rtph264depay_weak = ObjectExt::downgrade(&rtph264depay);
+    src.connect_pad_added(move |elm, src_pad| {
+        let rtph264depay = match rtph264depay_weak.upgrade() {
+            Some(depay) => depay,
+            None => return,
+        };
+        let sink_pad = rtph264depay
+            .static_pad("sink")
+            .expect("rtph264depay has no sink pad");
+        if sink_pad.is_linked() {
+            return;
+        }
+        match src_pad.link(&sink_pad) {
+            Ok(_) => (),
+            Err(_) => {
+                let name = src_pad.name();
+                elm.link_pads(Some(name.as_str()), &rtph264depay, Some("sink"));
+            }
+        };
+    });
+
+    rtph264depay.link(&h264parse).unwrap();
+    h264parse.link(&vaapih264dec).unwrap();
+    vaapih264dec.link(&tee).unwrap();
 
      // rtph264depay.link(&queue).unwrap();
-     src.link(&h264parse).unwrap();
+    //  src.link(&h264parse).unwrap();
      // queue.link(&h264parse).unwrap();
      // h264parse.link(&queue_2).unwrap();
-     h264parse.link(&vaapih264dec).unwrap();
+    //  h264parse.link(&vaapih264dec).unwrap();
      // queue_2.link(&vaapih264dec).unwrap();
      // vaapih264dec.link(&queue_3).unwrap();
-     vaapih264dec.link(&tee).unwrap();
+    //  vaapih264dec.link(&tee).unwrap();
      // queue_3.link(&tee).unwrap();
 
     tee.link(&queue_4).unwrap();
