@@ -144,6 +144,8 @@ async fn connect_nats() -> Connection {
         gst::ElementFactory::make("h264parse", None).map_err(|_| MissingElement("h264parse"))?;
     // Initialize tee
     let tee = gst::ElementFactory::make("tee", Some("tee"))?;
+    let queue =
+        gst::ElementFactory::make("queue", Some("queue_2")).map_err(|_| MissingElement("queue"))?;
     // Initialize queue 2
     let queue_2 =
         gst::ElementFactory::make("queue", Some("queue_2")).map_err(|_| MissingElement("queue"))?;
