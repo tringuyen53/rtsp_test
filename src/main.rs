@@ -294,13 +294,13 @@ async fn connect_nats() -> Connection {
     // });
 
      // rtph264depay.link(&queue).unwrap();
-     src.link(&jpegparse).unwrap();
+     src.link(&h264parse).unwrap();
      // queue.link(&h264parse).unwrap();
      // h264parse.link(&queue_2).unwrap();
-     jpegparse.link(&vaapijpegdec).unwrap();
+     h264parse.link(&vaapih264dec).unwrap();
      // queue_2.link(&vaapih264dec).unwrap();
      // vaapih264dec.link(&queue_3).unwrap();
-     vaapijpegdec.link(&tee).unwrap();
+     vaapih264dec.link(&tee).unwrap();
      // queue_3.link(&tee).unwrap();
 
     tee.link(&queue_4).unwrap();
