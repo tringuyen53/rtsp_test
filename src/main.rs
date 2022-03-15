@@ -50,7 +50,7 @@ struct ErrorMessage {
 #[derive(Debug, Clone)]
 pub struct RTPMessage {
     pub url: String,
-    pub client: Connection,
+    // pub client: Connection,
     pub id: String,
 }
 
@@ -784,13 +784,13 @@ async fn main() {
     std::thread::sleep(std::time::Duration::from_secs(2));
 
     let mut index = 0;
-    let client = task::block_on(connect_nats());
+    // let client = task::block_on(connect_nats());
     for ip in &cam_ip {
         let name = format!("rtsp-{}", ip);
         let rtsp_actor = Distributor::named(name);
         let msg = RTPMessage {
             url: urls[index].to_owned(),
-            client: client.clone(),
+            // client: client.clone(),
             id: ip.to_string(),
         };
         rtsp_actor.tell_one(msg).expect("tell failed");
