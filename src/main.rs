@@ -197,7 +197,7 @@ async fn connect_nats() -> Connection {
     // Initialize capsfilter for videorate_3
     let capsfilter_5 = gst::ElementFactory::make("capsfilter", Some("capsfilter_5"))?;
     let caps_5 = gst::Caps::builder("video/x-raw")
-        .field("framerate", gst::Fraction::new(3, 1))
+        .field("framerate", gst::Fraction::new(10, 1))
         .build();
     // Initialize capsfilter for vaapipostproc_3
     let capsfilter_6 = gst::ElementFactory::make("capsfilter", Some("capsfilter_6"))?;
@@ -244,9 +244,9 @@ async fn connect_nats() -> Connection {
     let elements = &[
         &src,
         &rtph264depay,
-        &queue,
+        // &queue,
         &h264parse,
-        &queue_2,
+        // &queue_2,
         &vaapih264dec,
         // &queue_3,
         &tee,
@@ -356,14 +356,14 @@ async fn connect_nats() -> Connection {
 
     //FULLSCREEN
     // appsink.set_property("emit-signals", false);
-    appsink.set_property("max-buffers", 1u32);
+    appsink.set_property("max-buffers", 5u32);
     appsink.set_property("drop", true);
     appsink.set_property("sync", true);
     appsink_2.set_property("wait-on-eos", false);
 
     //THUMNAIL
     // appsink_2.set_property("emit-signals", false);
-    appsink_2.set_property("max-buffers", 1u32);
+    appsink_2.set_property("max-buffers", 5u32);
     appsink_2.set_property("drop", true);
     appsink_2.set_property("sync", true);
     appsink_2.set_property("wait-on-eos", false);
@@ -391,41 +391,41 @@ async fn connect_nats() -> Connection {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
                //println!("Sample: {:?}", sample);
-                let buffer = sample.buffer().ok_or_else(|| {
-                    element_error!(
-                        appsink,
-                        gst::ResourceError::Failed,
-                        ("Failed to get buffer from appsink")
-                    );
+//                 let buffer = sample.buffer().ok_or_else(|| {
+//                     element_error!(
+//                         appsink,
+//                         gst::ResourceError::Failed,
+//                         ("Failed to get buffer from appsink")
+//                     );
 
-                    gst::FlowError::Error
-                })?;
+//                     gst::FlowError::Error
+//                 })?;
 
-        //        println!("Buffer {:?}", buffer);
+//         //        println!("Buffer {:?}", buffer);
                 
 
-                let map = buffer.map_readable().map_err(|_| {
-                    element_error!(
-                        appsink,
-                        gst::ResourceError::Failed,
-                        ("Failed to map buffer readable")
-                    );
+//                 let map = buffer.map_readable().map_err(|_| {
+//                     element_error!(
+//                         appsink,
+//                         gst::ResourceError::Failed,
+//                         ("Failed to map buffer readable")
+//                     );
 
-                    gst::FlowError::Error
-                })?;
-  //              println!("xxxxxxxx Map {:?}", map);   
+//                     gst::FlowError::Error
+//                 })?;
+//   //              println!("xxxxxxxx Map {:?}", map);   
 
-                let samples = map.as_slice_of::<u8>().map_err(|_| {
-                    element_error!(
-                        appsink,
-                        gst::ResourceError::Failed,
-                       ("Failed to interprete buffer as S16 PCM")
-                    );
+//                 let samples = map.as_slice_of::<u8>().map_err(|_| {
+//                     element_error!(
+//                         appsink,
+//                         gst::ResourceError::Failed,
+//                        ("Failed to interprete buffer as S16 PCM")
+//                     );
 
-                    gst::FlowError::Error
-                })?;
+//                     gst::FlowError::Error
+//                 })?;
 
-                println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
+//                 println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
 
                 // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
                 // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
@@ -452,9 +452,9 @@ async fn connect_nats() -> Connection {
                     // let transcode_actor = Distributor::named("transcode");
                     // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
                     
-                    drop(samples);
-                    drop(map);
-                    drop(buffer);
+                    // drop(samples);
+                    // drop(map);
+                    // drop(buffer);
                     drop(sample);
                 // }
                 Ok(gst::FlowSuccess::Ok)
