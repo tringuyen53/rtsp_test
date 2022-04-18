@@ -66,6 +66,105 @@ async fn connect_nats() -> Connection {
         .unwrap()
 }
 
+fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
+    let pipeline = gst::parse_launch(&format!(
+            "rtspsrc location={} ! rtph264depay ! vaapih264dec ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app1 max-buffers=5 drop=true sync=false wait-on-eos=false" ,
+            uri
+        ))?
+        .downcast::<gst::Pipeline>()
+        .expect("Expected a gst::Pipeline");
+        let mut count_full = 0;
+        // Get access to the appsink element.
+    let appsink = pipeline
+        .by_name("app1")
+        .expect("Sink element not found")
+        .downcast::<gst_app::AppSink>()
+        .expect("Sink element is expected to be an appsink!");
+        appsink.set_callbacks(
+            gst_app::AppSinkCallbacks::builder()
+                // Add a handler to the "new-sample" signal.
+                .new_sample(move |appsink| {
+                    // Pull the sample in question out of the appsink's buffer.
+                    let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
+                   println!("Sample: {:?}", sample);
+                   let caps = sample.caps().expect("Sample without caps");
+                    let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
+                    println!("Info: {:?}", info);
+                    let buffer = sample.buffer().ok_or_else(|| {
+                        element_error!(
+                            appsink,
+                            gst::ResourceError::Failed,
+                            ("Failed to get buffer from appsink")
+                        );
+    
+                        gst::FlowError::Error
+                    })?;
+    
+            //        println!("Buffer {:?}", buffer);
+                    
+    
+                    let map = buffer.map_readable().map_err(|_| {
+                        element_error!(
+                            appsink,
+                            gst::ResourceError::Failed,
+                            ("Failed to map buffer readable")
+                        );
+    
+                        gst::FlowError::Error
+                    })?;
+      //              println!("xxxxxxxx Map {:?}", map);   
+    
+                    let samples = map.as_slice_of::<u8>().map_err(|_| {
+                        element_error!(
+                            appsink,
+                            gst::ResourceError::Failed,
+                           ("Failed to interprete buffer as S16 PCM")
+                        );
+    
+                        gst::FlowError::Error
+                    })?;
+    
+                    println!("[FULL] Timestamp: {:?} - cam_id: {:?} - size: {:?}", std::time::SystemTime::now(), id, samples.len());
+    
+                    // task::block_on(async { client.publish(format!("rtsp_{}", id.clone()).as_str(), samples.to_vec()).await });
+                    // println!("Uri: {:?} - {:?} bytes", uri.clone(), samples.len());
+                     //SAVE IMAGE
+                     //let mut file = fs::File::create(format!("img-{}.jpg", count)).unwrap();
+                     //file.write_all(samples);
+    
+                // if id == "171" {
+                    let img_result = 
+                        image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
+                    match img_result {
+                        Ok(image) => {
+                               //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
+                               image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                                count_full += 1;
+                           },
+                        Err(_) => (),
+                    };
+                // }
+                // let mut throttle = Throttle::new(std::time::Duration::from_secs(1), 1);
+                // let result = throttle.accept();
+                // if result.is_ok() {
+                        // println!("Throttle START!!");
+                        // let transcode_actor = Distributor::named("transcode");
+                        // transcode_actor.tell_one(samples.to_vec()).expect("Tell transcode failed");   
+                        
+                        drop(samples);
+                        drop(map);
+                        drop(buffer);
+                        drop(sample);
+                    // }
+                    Ok(gst::FlowSuccess::Ok)
+                    // Err(gst::FlowError::Error)
+                })
+                .build(),
+        );
+        println!("Pipeline: {:?}", pipeline);
+        Ok(pipeline)
+}
+
  fn create_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
@@ -836,7 +935,8 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                //   create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                  create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
