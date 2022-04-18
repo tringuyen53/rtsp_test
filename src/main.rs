@@ -378,7 +378,7 @@ async fn connect_nats() -> Connection {
             .new_sample(move |appsink| {
                 // Pull the sample in question out of the appsink's buffer.
                 let sample = appsink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-               //println!("Sample: {:?}", sample);
+               println!("Sample: {:?}", sample);
                let caps = sample.caps().expect("Sample without caps");
                 let info = gst_video::VideoInfo::from_caps(caps).expect("Failed to parse caps");
                 println!("Info: {:?}", info);
@@ -642,8 +642,8 @@ fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
         match msg.view() {
             MessageView::Eos(..) => break,
             MessageView::Error(err) => {
-                pipeline.set_state(gst::State::Null)?;
                 println!("Error: {:?}", err.error());
+                pipeline.set_state(gst::State::Null)?;
                 return Err(ErrorMessage {
                     src: msg
                         .src()
