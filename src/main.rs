@@ -324,6 +324,8 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     // Initialize AppSink 3
     let sink_3 = gst::ElementFactory::make("appsink", Some("sink_3"))
         .map_err(|_| MissingElement("appsink"))?;
+    let uri = format!("'{}'", uri);
+    println!("Format uri: {:?}", uri);
     src.set_property("location", &uri);
     // queue.set_property_from_str("leaky", "downstream");
     // queue_2.set_property_from_str("leaky", "downstream");
@@ -936,8 +938,8 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                //   create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
-                  create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                //   create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
