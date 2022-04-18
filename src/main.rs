@@ -442,7 +442,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
         &src,
         &rtph264depay,
         // &queue,
-        &h264parse,
+        // &h264parse,
         // &queue_2,
         &vaapih264dec,
         // &queue_3,
@@ -496,10 +496,10 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     });
 
      // rtph264depay.link(&queue).unwrap();
-     rtph264depay.link(&h264parse).unwrap();
+     rtph264depay.link(&vaapih264dec).unwrap();
      // queue.link(&h264parse).unwrap();
      // h264parse.link(&queue_2).unwrap();
-     h264parse.link(&vaapih264dec).unwrap();
+    //  h264parse.link(&vaapih264dec).unwrap();
      // queue_2.link(&vaapih264dec).unwrap();
      // vaapih264dec.link(&queue_3).unwrap();
      vaapih264dec.link(&tee).unwrap();
@@ -1036,8 +1036,8 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                //   create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
-                  create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                //   create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
