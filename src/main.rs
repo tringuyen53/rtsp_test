@@ -622,8 +622,8 @@ async fn connect_nats() -> Connection {
 //             .build(),
 //     );
 
-//     Ok(pipeline)
-// }
+    Ok(pipeline)
+}
 
 fn main_loop(pipeline: gst::Pipeline) -> Result<(), Error> {
     println!("Start main loop");
