@@ -67,6 +67,7 @@ async fn connect_nats() -> Connection {
 }
 
 fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
+    gst::init()?;
     let pipeline = gst::parse_launch(&format!(
             "rtspsrc location={} ! rtph264depay ! vaapih264dec ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app1 max-buffers=5 drop=true sync=false wait-on-eos=false" ,
             uri
