@@ -47,7 +47,7 @@ struct ErrorMessage {
 #[derive(Debug, Clone)]
 pub struct RTPMessage {
     pub url: String,
-    pub client: Connection,
+    // pub client: Connection,
     pub id: String,
 }
 
@@ -66,7 +66,7 @@ async fn connect_nats() -> Connection {
         .unwrap()
 }
 
- fn create_pipeline(id: String, uri: String, client: Connection) -> Result<gst::Pipeline, Error> {
+ fn create_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
     gst::init()?;
 
     // Create our pipeline from a pipeline description string.
@@ -766,13 +766,13 @@ async fn main() {
     std::thread::sleep(std::time::Duration::from_secs(2));
 
     let mut index = 0;
-    let client = task::block_on(connect_nats());
+    // let client = task::block_on(connect_nats());
     for ip in &cam_ip {
         let name = format!("rtsp-{}", ip);
         let rtsp_actor = Distributor::named(name);
         let msg = RTPMessage {
             url: urls[index].to_owned(),
-            client: client.clone(),
+            // client: client.clone(),
             id: ip.to_string(),
         };
         rtsp_actor.tell_one(msg).expect("tell failed");
@@ -836,7 +836,7 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.id, message.url, message.client).and_then(|pipeline| main_loop(pipeline));
+                  create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
