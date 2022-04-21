@@ -150,7 +150,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                     match img_result {
                         Ok(image) => {
                                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                               image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                               image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
                                 count_full += 1;
                            },
                         Err(_) => (),
@@ -223,7 +223,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                         match img_result {
                             Ok(image) => {
                                    //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                                   image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                                   image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
                                     count_full += 1;
                                },
                             Err(_) => (),
@@ -433,8 +433,8 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     queue_4.set_property_from_str("leaky", "downstream");
     queue_5.set_property_from_str("leaky", "downstream");
     queue_6.set_property_from_str("leaky", "downstream");
-    vaapipostproc.set_property_from_str("video-direction","2");
-    vaapipostproc_2.set_property_from_str("video-direction", "2");
+    // vaapipostproc.set_property_from_str("video-direction","2");
+    // vaapipostproc_2.set_property_from_str("video-direction", "2");
     capsfilter.set_property("caps", &caps);
     capsfilter_2.set_property("caps", &caps_2);
     capsfilter_3.set_property("caps", &caps_3);
@@ -634,7 +634,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                 match img_result {
                     Ok(image) => {
                            //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                           image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                           image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
                             count_full += 1;
                        },
                     Err(_) => (),
@@ -707,7 +707,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                 //     match img_result {
                 //         Ok(image) => {
                 //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                //                image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                //                image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
                 //                 count_full += 1;
                 //            },
                 //         Err(_) => (),
@@ -724,7 +724,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                        image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                        image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
                         count_thumb += 1;
                     },
                  Err(_) => (),
@@ -802,7 +802,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
 //             //     match img_result {
 //             //         Ok(image) => {
 //             //                //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-//             //                image.save(format!("record-{}-{:?}.jpg", id_3, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+//             //                image.save(format!("record-{}-{:?}.jpg", id_3, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
 //             //                 count_record += 1;
 //             //            },
 //             //         Err(_) => (),
@@ -873,7 +873,8 @@ async fn main() {
     
 
     let urls = [
-        "rtsp://administrator:admin25610@192.168.10.16:554/defaultPrimary?streamType=u"
+        // "rtsp://administrator:admin25610@192.168.10.16:554/defaultPrimary?streamType=u"
+        "rtsp://10.50.13.229/1/h264major"
         // "rtsp://10.50.29.96/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
