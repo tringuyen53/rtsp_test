@@ -69,9 +69,9 @@ async fn connect_nats() -> Connection {
 fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
     gst::init()?;
     let pipeline = gst::parse_launch(&format!(
-            "rtspsrc location={0} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! video/x-raw,width=1920,height=1080 ! rotate angle={1} ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc ! video/x-raw,width=720,height=480 ! rotate angle={1} ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
+            "rtspsrc location={0} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! video/x-raw,width=1920,height=1080 ! videoflip method={1} ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc ! video/x-raw,width=720,height=480 ! videoflip method={1} ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
             uri,
-            std::f64::consts::PI,
+            "rotate-180",
         ))?
         .downcast::<gst::Pipeline>()
         .expect("Expected a gst::Pipeline");
