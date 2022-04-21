@@ -69,8 +69,9 @@ async fn connect_nats() -> Connection {
 fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
     gst::init()?;
     let pipeline = gst::parse_launch(&format!(
-            "rtspsrc location={} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc ! video/x-raw,width=720,height=480 ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
-            uri
+            "rtspsrc location={0} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc ! video/x-raw,width=1920,height=1080 ! rotate angle={1} ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc ! video/x-raw,width=720,height=480 ! rotate angle={1} ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
+            uri,
+            std::f64::consts::PI,
         ))?
         .downcast::<gst::Pipeline>()
         .expect("Expected a gst::Pipeline");
@@ -869,7 +870,7 @@ async fn main() {
     
 
     let urls = [
-        "rtsp://administrator:admin25610@192.168.10.11/defaultPrimary?mtu=1440&streamType=u"
+        "rtsp://administrator:admin25610@192.168.10.18:554/defaultPrimary?streamType=u"
         // "rtsp://10.50.29.96/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
