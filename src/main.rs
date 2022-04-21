@@ -437,8 +437,8 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     capsfilter_4.set_property("caps", &caps_4);
     capsfilter_5.set_property("caps", &caps_5);
     capsfilter_6.set_property("caps", &caps_6);
-    vaapipostproc.set_property("video-direction", 2);
-    vaapipostproc_2.set_property("video-direction", 2);
+    vaapipostproc.set_property("video-direction", "2");
+    vaapipostproc_2.set_property("video-direction", "2");
     // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
     let elements = &[
         &src,
