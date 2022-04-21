@@ -870,7 +870,7 @@ async fn main() {
     
 
     let urls = [
-        "rtsp://administrator:admin25610@192.168.10.18:554/defaultPrimary?streamType=u"
+        "rtsp://administrator:admin25610@192.168.10.16:554/defaultPrimary?streamType=u"
         // "rtsp://10.50.29.96/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
