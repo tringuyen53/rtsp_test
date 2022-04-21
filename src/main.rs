@@ -15,6 +15,8 @@ use gst::element_error;
 use gst::glib;
 use gst::prelude::*;
 use byte_slice_cast::*;
+use gst_video::ffi::GST_VIDEO_ORIENTATION_180;
+use gst_video::ffi::GST_VIDEO_ORIENTATION_UR_LL;
 use std::io::Write; // bring trait into scope
 use std::fs;
 use tokio::runtime::Handle;
@@ -437,8 +439,8 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     capsfilter_4.set_property("caps", &caps_4);
     capsfilter_5.set_property("caps", &caps_5);
     capsfilter_6.set_property("caps", &caps_6);
-    vaapipostproc.set_property("video-direction", "2");
-    vaapipostproc_2.set_property("video-direction", "2");
+    vaapipostproc.set_property("video-direction", GST_VIDEO_ORIENTATION_180);
+    vaapipostproc_2.set_property("video-direction", GST_VIDEO_ORIENTATION_180);
     // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
     let elements = &[
         &src,
