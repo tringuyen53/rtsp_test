@@ -433,14 +433,14 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     queue_4.set_property_from_str("leaky", "downstream");
     queue_5.set_property_from_str("leaky", "downstream");
     queue_6.set_property_from_str("leaky", "downstream");
+    vaapipostproc.set_property("video-direction", GST_VIDEO_ORIENTATION_180);
+    vaapipostproc_2.set_property("video-direction", GST_VIDEO_ORIENTATION_180);
     capsfilter.set_property("caps", &caps);
     capsfilter_2.set_property("caps", &caps_2);
     capsfilter_3.set_property("caps", &caps_3);
     capsfilter_4.set_property("caps", &caps_4);
     capsfilter_5.set_property("caps", &caps_5);
     capsfilter_6.set_property("caps", &caps_6);
-    vaapipostproc.set_property("video-direction", GST_VIDEO_ORIENTATION_180);
-    vaapipostproc_2.set_property("video-direction", GST_VIDEO_ORIENTATION_180);
     // ADD MANY ELEMENTS TO PIPELINE AND LINK THEM TOGETHER
     let elements = &[
         &src,
@@ -465,13 +465,13 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
         &capsfilter_4,
         &vaapijpegenc_2,
         &sink_2,
-        &queue_6,
-        &videorate_3,
-        &capsfilter_5,
-        &vaapipostproc_3,
-        &capsfilter_6,
-        &vaapijpegenc_3,
-        &sink_3,
+        // &queue_6,
+        // &videorate_3,
+        // &capsfilter_5,
+        // &vaapipostproc_3,
+        // &capsfilter_6,
+        // &vaapijpegenc_3,
+        // &sink_3,
     ];
 
     pipeline.add_many(elements);
@@ -525,13 +525,13 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     capsfilter_4.link(&vaapijpegenc_2).unwrap();
     vaapijpegenc_2.link(&sink_2).unwrap();
 
-    tee.link(&queue_6).unwrap();
-    queue_6.link(&videorate_3).unwrap();
-    videorate_3.link(&capsfilter_5).unwrap();
-    capsfilter_5.link(&vaapipostproc_3).unwrap();
-    vaapipostproc_3.link(&capsfilter_6).unwrap();
-    capsfilter_6.link(&vaapijpegenc_3).unwrap();
-    vaapijpegenc_3.link(&sink_3).unwrap();
+    // tee.link(&queue_6).unwrap();
+    // queue_6.link(&videorate_3).unwrap();
+    // videorate_3.link(&capsfilter_5).unwrap();
+    // capsfilter_5.link(&vaapipostproc_3).unwrap();
+    // vaapipostproc_3.link(&capsfilter_6).unwrap();
+    // capsfilter_6.link(&vaapijpegenc_3).unwrap();
+    // vaapijpegenc_3.link(&sink_3).unwrap();
 
     let appsink = pipeline
         .by_name("sink")
@@ -545,11 +545,11 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
         .downcast::<gst_app::AppSink>()
         .expect("Sink 2 element is expected to be an appsink!");
 
-    let appsink_3 = pipeline
-        .by_name("sink_3")
-        .expect("Sink 3 element not found")
-        .downcast::<gst_app::AppSink>()
-        .expect("Sink 3 element is expected to be an appsink!");
+    // let appsink_3 = pipeline
+    //     .by_name("sink_3")
+    //     .expect("Sink 3 element not found")
+    //     .downcast::<gst_app::AppSink>()
+    //     .expect("Sink 3 element is expected to be an appsink!");
 
     //FULLSCREEN
     appsink.set_property("emit-signals", false);
@@ -564,14 +564,14 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     appsink_2.set_property("wait-on-eos", false);
 
     //RECORD
-    appsink_3.set_property("emit-signals", false);
-    appsink_3.set_property("max-buffers", 5u32);
-    appsink_3.set_property("drop", true); 
-    appsink_3.set_property("wait-on-eos", false);
+    // appsink_3.set_property("emit-signals", false);
+    // appsink_3.set_property("max-buffers", 5u32);
+    // appsink_3.set_property("drop", true); 
+    // appsink_3.set_property("wait-on-eos", false);
 
     let mut count_full = 0;
     let mut count_thumb= 0;
-    let mut count_record = 0;
+    // let mut count_record = 0;
     let id_2 = id.clone();
     let id_3 = id.clone();
     // Getting data out of the appsink is done by setting callbacks on it.
