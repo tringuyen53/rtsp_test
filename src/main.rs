@@ -69,7 +69,7 @@ async fn connect_nats() -> Connection {
 fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
     gst::init()?;
     let pipeline = gst::parse_launch(&format!(
-            "rtspsrc location={} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc ! video/x-raw,width=720,height=480 ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
+            "rtspsrc location={} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=720,height=480 ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
             uri,
         ))?
         .downcast::<gst::Pipeline>()
@@ -720,8 +720,8 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                         image.save(format!("thumb-{}-{}.jpg", id_2, count_thumb)).unwrap();
-                         count_thumb += 1;
+                        image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs()));
+                        count_thumb += 1;
                     },
                  Err(_) => (),
              };
