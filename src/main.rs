@@ -634,7 +634,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                 match img_result {
                     Ok(image) => {
                            //  image.save(format!("full-{}-{}.jpg", id, count_full)).unwrap();
-                           image.save(format!("full-{}-{:?}.jpg", id, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
+                           image.save(format!("{:?}-full-{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos(), id));
                             count_full += 1;
                        },
                     Err(_) => (),
@@ -724,7 +724,7 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
                  image::load_from_memory_with_format(samples, ImageFormat::Jpeg);
              match img_result {
                  Ok(image) => {
-                        image.save(format!("thumb-{}-{:?}.jpg", id_2, std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos()));
+                        image.save(format!("{:?}-thumb-{:?}.jpg", std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos(), id_2));
                         count_thumb += 1;
                     },
                  Err(_) => (),
