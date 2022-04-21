@@ -433,8 +433,8 @@ fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> 
     queue_4.set_property_from_str("leaky", "downstream");
     queue_5.set_property_from_str("leaky", "downstream");
     queue_6.set_property_from_str("leaky", "downstream");
-    vaapipostproc.set_property_from_str("video-direction",GST_VIDEO_ORIENTATION_180.as_str());
-    vaapipostproc_2.set_property_from_str("video-direction",GST_VIDEO_ORIENTATION_180.as_str());
+    vaapipostproc.set_property_from_str("video-direction","2");
+    vaapipostproc_2.set_property_from_str("video-direction", "2");
     capsfilter.set_property("caps", &caps);
     capsfilter_2.set_property("caps", &caps_2);
     capsfilter_3.set_property("caps", &caps_3);
