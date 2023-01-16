@@ -71,7 +71,7 @@ async fn connect_nats() -> Connection {
 fn create_raw_pipeline(id: String, uri: String) -> Result<gst::Pipeline, Error> {
     gst::init()?;
     let pipeline = gst::parse_launch(&format!(
-            "rtspsrc location={} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=5/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=3/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=720,height=480 ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
+            "rtspsrc location={} ! rtph264depay ! vaapih264dec ! tee name=thumbnail_video ! queue leaky=2 ! videorate ! video/x-raw,framerate=1/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=1920,height=1080 ! vaapijpegenc ! appsink name=app_full max-buffers=5 drop=true sync=true wait-on-eos=false thumbnail_video. ! queue leaky=2 ! videorate ! video/x-raw,framerate=1/1 ! vaapipostproc video-direction=2 ! video/x-raw,width=720,height=480 ! vaapijpegenc ! appsink name=app_thumb max-buffers=5 drop=true sync=true wait-on-eos=false" ,
             uri,
         ))?
         .downcast::<gst::Pipeline>()
@@ -874,7 +874,7 @@ async fn main() {
 
     let urls = [
         // "rtsp://administrator:admin25610@192.168.10.16:554/defaultPrimary?streamType=u"
-        "rtsp://10.50.13.229/1/h264major"
+        "rtsp://test:test123@192.168.1.17:88/videoMain"
         // "rtsp://10.50.29.96/1/h264major",
         // "rtsp://10.50.31.171/1/h264major",
         // "rtsp://10.50.13.231/1/h264major",
@@ -930,7 +930,7 @@ async fn main() {
     }).map_err(|_| println!("Error"));
 
     let cam_ip = vec![
-        11
+        17
         // 96, 
         // 171,
         // 231, 
@@ -1041,8 +1041,8 @@ async fn get_rtsp_stream(ctx: BastionContext) -> Result<(), ()> {
 //let n1: u8 = rng.gen();
 //println!("spawn new actor: {:?} - {:?}", message, n1);
                 rt.spawn_blocking( move || {  
-                  create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
-                //   create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                //   create_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
+                  create_raw_pipeline(message.id, message.url).and_then(|pipeline| main_loop(pipeline));
 //let pipeline = create_pipeline(message.to_owned(), n1).await.unwrap();
   //                  main_loop(pipeline)          
     });
